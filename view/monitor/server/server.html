@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="服务监控" /}</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+<div class="col-sm-12">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="ibox float-e-margins">
+        <div class="ibox-title"><h5><i class="fa fa-microchip"></i> CPU</h5></div>
+        <div class="ibox-content">
+          <table class="table table-hover no-margins">
+            <thead><tr><th>属性</th><th>值</th></tr></thead>
+            <tbody>
+              <tr><td>核心数</td><td>{$server.cpu.cpuNum}</td></tr>
+              <tr><td>用户使用率</td><td>{$server.cpu.used}%</td></tr>
+              <tr><td>系统使用率</td><td>{$server.cpu.sys}%</td></tr>
+              <tr><td>当前空闲率</td><td>{$server.cpu.free}%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="ibox float-e-margins">
+        <div class="ibox-title"><h5><i class="fa fa-ticket"></i> 内存</h5></div>
+        <div class="ibox-content">
+          <table class="table table-hover no-margins">
+            <thead><tr><th>属性</th><th>内存</th><th>PHP</th></tr></thead>
+            <tbody>
+              <tr><td>总内存</td><td>{$server.mem.total}G</td><td>{$server.jvm.total}M</td></tr>
+              <tr><td>已用内存</td><td>{$server.mem.used}G</td><td>{$server.jvm.used}M</td></tr>
+              <tr><td>剩余内存</td><td>{$server.mem.free}G</td><td>{$server.jvm.free}M</td></tr>
+              <tr>
+                <td>使用率</td>
+                <td {if $server.mem.usage gt 80}class="text-danger"{/if}>{$server.mem.usage}%</td>
+                <td {if $server.jvm.usage gt 80}class="text-danger"{/if}>{$server.jvm.usage}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="ibox float-e-margins">
+        <div class="ibox-title"><h5><i class="fa fa-windows"></i> 服务器信息</h5></div>
+        <div class="ibox-content">
+          <table class="table table-hover margin bottom">
+            <tbody>
+              <tr>
+                <td>服务器名称</td><td>{$server.sys.computerName}</td>
+                <td>操作系统</td><td>{$server.sys.osName}</td>
+              </tr>
+              <tr>
+                <td>服务器IP</td><td>{$server.sys.computerIp}</td>
+                <td>系统架构</td><td>{$server.sys.osArch}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="ibox float-e-margins">
+        <div class="ibox-title"><h5><i class="fa fa-code"></i> PHP</h5></div>
+        <div class="ibox-content">
+          <table class="table table-hover margin bottom" style="table-layout:fixed;">
+            <tbody>
+              <tr>
+                <td>PHP名称</td><td>{$server.jvm.name}</td>
+                <td>PHP版本</td><td>{$server.jvm.version}</td>
+              </tr>
+              <tr>
+                <td>启动时间</td><td>{$server.jvm.startTime}</td>
+                <td>运行时长</td><td>{$server.jvm.runTime}</td>
+              </tr>
+              <tr>
+                <td colspan="1">安装路径</td>
+                <td colspan="3">{$server.jvm.home}</td>
+              </tr>
+              <tr>
+                <td colspan="1">项目路径</td>
+                <td colspan="3">{$server.sys.userDir}</td>
+              </tr>
+              <tr>
+                <td colspan="1">运行参数</td>
+                <td colspan="3">{$server.jvm.inputArgs}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="ibox float-e-margins">
+        <div class="ibox-title"><h5><i class="fa fa-hdd-o"></i> 磁盘状态</h5></div>
+        <div class="ibox-content">
+          <table class="table table-hover margin bottom">
+            <thead>
+              <tr>
+                <th>盘符路径</th><th>文件系统</th><th>盘符类型</th>
+                <th>总大小</th><th>可用大小</th><th>已用大小</th><th>已用百分比</th>
+              </tr>
+            </thead>
+            <tbody>
+            {volist name="server.sysFiles" id="disk"}
+              <tr>
+                <td>{$disk.dirName}</td>
+                <td>{$disk.sysTypeName}</td>
+                <td>{$disk.typeName}</td>
+                <td>{$disk.total}</td>
+                <td>{$disk.free}</td>
+                <td>{$disk.used}</td>
+                <td {if $disk.usage gt 80}class="text-danger"{/if}>{$disk.usage}%</td>
+              </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+{include file="/common/footer" /}
+</body></html>

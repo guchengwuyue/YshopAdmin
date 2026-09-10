@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="菜单列表" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="menu-form"><div class="select-list"><ul>
+<li>菜单名称：<input type="text" name="menuName"/></li>
+<li>状态：<select name="visible"><option value="">所有</option><option value="0">显示</option><option value="1">隐藏</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.treeTable.search()"><i class="fa fa-search"></i>&nbsp;搜索</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar"><a class="btn btn-success" onclick="$.operate.add(0)"><i class="fa fa-plus"></i> 新增</a></div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-tree-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "system/menu";
+$(function(){
+  var menuTypeMap = {"M":"目录","C":"菜单","F":"按钮"};
+  $.treeTable.init({
+    id: "bootstrap-tree-table",
+    code: "menuId", parentCode: "parentId", uniqueId: "menuId",
+    expandColumn: 0,
+    url: prefix + "/list",
+    createUrl: prefix + "/add/{id}",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove/{id}",
+    modalName: "菜单",
+    columns: [
+      {field:"menuName", title:"菜单名称", align:"left", formatter:function(value, row, index) {
+        if ($.common.isEmpty(row.icon)) { return row.menuName; }
+        return '<i class="' + row.icon + '"></i> <span class="nav-label">' + row.menuName + '</span>';
+      }},
+      {field:"orderNum", title:"排序"},
+      {field:"url", title:"请求地址"},
+      {field:"menuType", title:"类型", formatter:function(v){return menuTypeMap[v]||v;}},
+      {field:"visible", title:"可见", formatter:function(v){return v=="0"?"显示":"隐藏";}},
+      {field:"perms", title:"权限标识"},
+      {title:"操作", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" onclick="$.operate.edit(\''+row.menuId+'\')"><i class="fa fa-edit"></i></a> '+
+               '<a class="btn btn-info btn-xs" onclick="$.operate.add(\''+row.menuId+'\')"><i class="fa fa-plus"></i></a> '+
+               '<a class="btn btn-danger btn-xs" onclick="$.operate.remove(\''+row.menuId+'\')"><i class="fa fa-remove"></i></a>';
+      }}
+    ]
+  });
+});
+</script>
+</body></html>

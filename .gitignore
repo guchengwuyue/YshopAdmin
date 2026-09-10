@@ -1,0 +1,15 @@
+*.log
+.env
+composer.phar
+composer.lock
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/vendor
+/.settings
+/.buildpath
+/.project
+AGENTS.md
+#加入doc忽略
+/public/doc/

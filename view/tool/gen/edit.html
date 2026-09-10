@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="修改生成配置" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+<form class="form-horizontal m" id="form-gen-edit">
+  <input type="hidden" name="tableId" value="{$table.tableId}">
+  <div class="form-group">
+    <label class="col-sm-3 control-label">表名称：</label>
+    <div class="col-sm-8"><p class="form-control-static">{$table.tableName}</p></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">表描述：</label>
+    <div class="col-sm-8"><input class="form-control" name="tableComment" value="{$table.tableComment}"></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">实体类名：</label>
+    <div class="col-sm-8"><input class="form-control" name="className" value="{$table.className}"></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">生成模块名：</label>
+    <div class="col-sm-8"><input class="form-control" name="moduleName" value="{$table.moduleName}"></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">生成业务名：</label>
+    <div class="col-sm-8"><input class="form-control" name="businessName" value="{$table.businessName}"></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">生成功能名：</label>
+    <div class="col-sm-8"><input class="form-control" name="functionName" value="{$table.functionName}"></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">作者：</label>
+    <div class="col-sm-8"><input class="form-control" name="functionAuthor" value="{$table.functionAuthor}"></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">备注：</label>
+    <div class="col-sm-8"><textarea class="form-control" name="remark">{$table.remark}</textarea></div>
+  </div>
+</form>
+</div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "tool/gen";
+$("#form-gen-edit").validate({focusCleanup:true});
+function submitHandler(){
+  if($.validate.form()){ $.operate.save(prefix + "/edit", $("#form-gen-edit").serialize()); }
+}
+</script>
+</body></html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="插件配置" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content">
+<form class="form-horizontal m" id="form-addon-config">
+  <input type="hidden" name="name" value="{$name}"/>
+  {volist name="schema" id="item"}
+  <div class="form-group">
+    <label class="col-sm-3 control-label">{$item.title|default=$item.name}：</label>
+    <div class="col-sm-8">
+      {if isset($item.type) && ($item.type == 'array' || $item.type == 'textarea')}
+      <textarea name="config[{$item.name}]" class="form-control" rows="8">{$item.valueText|default=''}</textarea>
+      {else}
+      <input name="config[{$item.name}]" class="form-control" value="{$item.valueText|default=''}"/>
+      {/if}
+      <span class="help-block m-b-none">{$item.tip|default=''}</span>
+    </div>
+  </div>
+  {/volist}
+  {empty name="schema"}
+  <div class="alert alert-info">该插件无可配置项</div>
+  {/empty}
+</form>
+</div>
+{include file="/common/footer" /}
+<script>
+function submitHandler(){
+  $.operate.save(ctx + "system/addon/config/{$name}", $("#form-addon-config").serialize());
+}
+</script>
+</body></html>

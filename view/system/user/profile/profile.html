@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="个人中心" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12">
+<form class="form-horizontal m" id="form-profile">
+  <div class="form-group"><label class="col-sm-3 control-label">登录名称：</label><div class="col-sm-8"><p class="form-control-static">{$user.loginName}</p></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label is-required">用户名称：</label><div class="col-sm-8"><input name="userName" class="form-control" value="{$user.userName}" required></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">手机：</label><div class="col-sm-8"><input name="phonenumber" class="form-control" value="{$user.phonenumber}"></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">邮箱：</label><div class="col-sm-8"><input name="email" class="form-control" value="{$user.email}"></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">性别：</label><div class="col-sm-8">
+    <label class="radio-box"><input type="radio" name="sex" value="0" {if $user.sex=='0'}checked{/if}>男</label>
+    <label class="radio-box"><input type="radio" name="sex" value="1" {if $user.sex=='1'}checked{/if}>女</label>
+    <label class="radio-box"><input type="radio" name="sex" value="2" {if $user.sex=='2'}checked{/if}>未知</label>
+  </div></div>
+  <div class="form-group"><div class="col-sm-offset-3 col-sm-8">
+    <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>保存</button>
+    <a class="btn btn-sm btn-danger" href="/system/user/profile/resetPwd"><i class="fa fa-key"></i>修改密码</a>
+  </div></div>
+</form>
+</div>
+</div></div>
+{include file="/common/footer" /}
+<script>function submitHandler(){ $.operate.save(ctx+"system/user/profile/update", $("#form-profile").serialize()); }</script>
+</body></html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="任务详情" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+<form class="form-horizontal">
+  <div class="form-group"><label class="col-sm-3 control-label">任务编号：</label><div class="col-sm-8"><p class="form-control-static">{$job.jobId|default=$job.jobLogId}</p></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">任务名称：</label><div class="col-sm-8"><p class="form-control-static">{$job.jobName}</p></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">任务分组：</label><div class="col-sm-8"><p class="form-control-static">{$job.jobGroup}</p></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">调用目标：</label><div class="col-sm-8"><p class="form-control-static">{$job.invokeTarget}</p></div></div>
+  {if isset($job.cronExpression)}
+  <div class="form-group"><label class="col-sm-3 control-label">cron表达式：</label><div class="col-sm-8"><p class="form-control-static">{$job.cronExpression}</p></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">状态：</label><div class="col-sm-8"><p class="form-control-static">{$job.status}</p></div></div>
+  {/if}
+  {if isset($job.jobMessage)}
+  <div class="form-group"><label class="col-sm-3 control-label">日志信息：</label><div class="col-sm-8"><p class="form-control-static">{$job.jobMessage}</p></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">异常信息：</label><div class="col-sm-8"><p class="form-control-static">{$job.exceptionInfo}</p></div></div>
+  {/if}
+  <div class="form-group"><label class="col-sm-3 control-label">备注：</label><div class="col-sm-8"><p class="form-control-static">{$job.remark|default=''}</p></div></div>
+</form>
+</div>
+{include file="/common/footer" /}
+</body></html>

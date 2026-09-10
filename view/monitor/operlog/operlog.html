@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="操作日志" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="formId"><div class="select-list"><ul>
+<li>系统模块：<input type="text" name="title"/></li>
+<li>操作人员：<input type="text" name="operName"/></li>
+<li>状态：<select name="status"><option value="">所有</option><option value="0">成功</option><option value="1">失败</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar">
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+<a class="btn btn-danger" onclick="$.operate.clean()"><i class="fa fa-trash"></i> 清空</a>
+<a class="btn btn-warning" onclick="$.table.exportExcel()"><i class="fa fa-download"></i> 导出</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "monitor/operlog";
+$(function(){
+  $.table.init({
+    id: "bootstrap-table",
+    uniqueId: "operId",
+    url: prefix + "/list",
+    removeUrl: prefix + "/remove",
+    cleanUrl: prefix + "/clean",
+    detailUrl: prefix + "/detail/{id}",
+    exportUrl: prefix + "/export",
+    modalName: "操作日志",
+    columns: [
+      {checkbox:true},
+      {field:"operId", title:"日志编号"},
+      {field:"title", title:"系统模块"},
+      {field:"requestMethod", title:"请求方式"},
+      {field:"operName", title:"操作人员"},
+      {field:"operIp", title:"主机"},
+      {field:"status", title:"状态", formatter:function(v){return v==0||v=="0"?"成功":"失败";}},
+      {field:"operTime", title:"操作时间"},
+      {field:"costTime", title:"消耗时间"},
+      {title:"操作", formatter:function(v,row){ return '<a class="btn btn-warning btn-xs" onclick="$.operate.detail(\''+row.operId+'\')"><i class="fa fa-search"></i>详细</a>'; }}
+    ]
+  });
+});
+</script>
+</body></html>

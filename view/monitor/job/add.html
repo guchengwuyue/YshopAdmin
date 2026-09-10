@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="新增定时任务" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+<form class="form-horizontal m" id="form-job-add">
+  <div class="form-group">
+    <label class="col-sm-3 control-label is-required">任务名称：</label>
+    <div class="col-sm-8"><input class="form-control" type="text" name="jobName" id="jobName" required></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">任务分组：</label>
+    <div class="col-sm-8">
+      <select name="jobGroup" class="form-control m-b">
+        {volist name="jobGroupDict" id="d"}<option value="{$d.dictValue}">{$d.dictLabel}</option>{/volist}
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label is-required">调用目标字符串：</label>
+    <div class="col-sm-8">
+      <input class="form-control" type="text" name="invokeTarget" id="invokeTarget" required>
+      <span class="help-block m-b-none"><i class="fa fa-info-circle"></i> 白名单示例：ryTask.ryNoParams 或 ryTask.ryParams('ry')</span>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label is-required">cron表达式：</label>
+    <div class="col-sm-8"><input class="form-control" type="text" name="cronExpression" id="cronExpression" required></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">执行策略：</label>
+    <div class="col-sm-8">
+      <label class="radio-box"><input type="radio" name="misfirePolicy" value="1"> 立即执行</label>
+      <label class="radio-box"><input type="radio" name="misfirePolicy" value="2"> 执行一次</label>
+      <label class="radio-box"><input type="radio" name="misfirePolicy" value="3" checked> 放弃执行</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">是否并发：</label>
+    <div class="col-sm-8">
+      <label class="radio-box"><input type="radio" name="concurrent" value="0"> 允许</label>
+      <label class="radio-box"><input type="radio" name="concurrent" value="1" checked> 禁止</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">状态：</label>
+    <div class="col-sm-8">
+      <label class="radio-box"><input type="radio" name="status" value="0"> 正常</label>
+      <label class="radio-box"><input type="radio" name="status" value="1" checked> 暂停</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-3 control-label">备注：</label>
+    <div class="col-sm-8"><textarea id="remark" name="remark" class="form-control"></textarea></div>
+  </div>
+</form>
+</div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "monitor/job";
+$("#form-job-add").validate({focusCleanup:true});
+function submitHandler(){
+  if($.validate.form()){ $.operate.save(prefix + "/add", $("#form-job-add").serialize()); }
+}
+</script>
+</body></html>

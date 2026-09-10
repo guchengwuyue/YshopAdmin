@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="添加角色" /}{include file="/common/ztree-css" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content">
+<form class="form-horizontal m" id="form-role-add">
+  <input type="hidden" id="menuIds" name="menuIds">
+  <div class="form-group"><label class="col-sm-3 control-label is-required">角色名称：</label><div class="col-sm-8"><input name="roleName" class="form-control" required></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label is-required">权限字符：</label><div class="col-sm-8"><input name="roleKey" class="form-control" required></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label is-required">显示顺序：</label><div class="col-sm-8"><input name="roleSort" type="number" class="form-control" value="0" required></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">状态：</label><div class="col-sm-8"><label class="radio-box"><input type="radio" name="status" value="0" checked>正常</label><label class="radio-box"><input type="radio" name="status" value="1">停用</label></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">菜单权限：</label><div class="col-sm-8"><div id="menuTrees" class="ztree"></div></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">备注：</label><div class="col-sm-8"><textarea name="remark" class="form-control"></textarea></div></div>
+</form>
+</div>
+{include file="/common/footer" /}{include file="/common/ztree-js" /}
+<script>
+$(function(){
+  var setting = {check:{enable:true}, data:{simpleData:{enable:true}}};
+  $.get(ctx + "system/role/menuTreeData", function(data){
+    if (!$.isArray(data)) { data = []; }
+    $.fn.zTree.init($("#menuTrees"), setting, data);
+  });
+});
+function submitHandler(){
+  var tree = $.fn.zTree.getZTreeObj("menuTrees");
+  var nodes = tree.getCheckedNodes(true);
+  var ids = [];
+  for (var i=0;i<nodes.length;i++){ ids.push(nodes[i].id); }
+  $("#menuIds").val(ids.join(","));
+  if($.validate.form()){ $.operate.save(ctx+"system/role/add", $("#form-role-add").serialize()); }
+}
+</script>
+</body></html>

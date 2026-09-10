@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="插件管理" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="formId"><div class="select-list"><ul>
+<li>名称：<input type="text" name="name"/></li>
+<li>状态：<select name="status">
+<option value="">所有</option>
+<option value="-1">未安装</option>
+<option value="0">已安装(停用)</option>
+<option value="1">启用</option>
+</select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar" role="group">
+<a class="btn btn-info" onclick="uploadAddon()"><i class="fa fa-upload"></i> 本地安装</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+<input type="file" id="addonZip" accept=".zip" style="display:none"/>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "system/addon";
+$(function(){
+  $.table.init({
+    url: prefix + "/list",
+    modalName: "插件",
+    columns: [
+      {field:"name", title:"标识"},
+      {field:"title", title:"名称"},
+      {field:"version", title:"版本"},
+      {field:"author", title:"作者"},
+      {field:"status", title:"状态", formatter:function(v){
+        if(v==="-1"||v===-1) return '<span class="text-muted">未安装</span>';
+        if(v==="1"||v===1) return '<span class="text-success">启用</span>';
+        return '<span class="text-warning">停用</span>';
+      }},
+      {field:"installTime", title:"安装时间"},
+      {title:"操作", align:"center", formatter:function(v,row){
+        var html = '';
+        if(!row.installed){
+          html += '<a class="btn btn-success btn-xs" onclick="doAction(\'install\',\''+row.name+'\')"><i class="fa fa-plus"></i>安装</a> ';
+        } else {
+          if(row.status==="1"||row.status===1){
+            html += '<a class="btn btn-warning btn-xs" onclick="doAction(\'disable\',\''+row.name+'\')"><i class="fa fa-ban"></i>禁用</a> ';
+          } else {
+            html += '<a class="btn btn-primary btn-xs" onclick="doAction(\'enable\',\''+row.name+'\')"><i class="fa fa-check"></i>启用</a> ';
+            html += '<a class="btn btn-danger btn-xs" onclick="doAction(\'uninstall\',\''+row.name+'\')"><i class="fa fa-remove"></i>卸载</a> ';
+          }
+          if(row.hasConfig){
+            html += '<a class="btn btn-info btn-xs" href="javascript:void(0)" onclick="openConfig(\''+row.name+'\')"><i class="fa fa-cog"></i>配置</a>';
+          }
+        }
+        return html;
+      }}
+    ]
+  });
+});
+function openConfig(name){
+  $.modal.open("插件配置", prefix + "/config/" + name);
+}
+function doAction(action, name){
+  $.modal.confirm("确认执行该操作？", function(){
+    $.operate.submit(prefix + "/" + action, "post", "json", {name:name});
+  });
+}
+function uploadAddon(){
+  $("#addonZip").click();
+}
+$("#addonZip").on("change", function(){
+  var f = this.files[0];
+  if(!f) return;
+  var fd = new FormData();
+  fd.append("file", f);
+  $.ajax({
+    url: prefix + "/upload",
+    type: "post",
+    data: fd,
+    processData: false,
+    contentType: false,
+    success: function(res){
+      if(res.code===0){ $.modal.msgSuccess(res.msg); $.table.refresh(); }
+      else { $.modal.msgError(res.msg||"失败"); }
+    }
+  });
+  this.value = "";
+});
+</script>
+</body></html>

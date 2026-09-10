@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="字典数据" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="formId"><input type="hidden" name="dictType" value="{$dictType}">
+<div class="select-list"><ul>
+<li>字典标签：<input type="text" name="dictLabel"/></li>
+<li>状态：<select name="status"><option value="">所有</option><option value="0">正常</option><option value="1">停用</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar">
+<a class="btn btn-success" onclick="$.operate.add()"><i class="fa fa-plus"></i> 新增</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.edit()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "system/dict/data";
+var dictType = "{$dictType}";
+$(function(){
+  $.table.init({
+    id: "bootstrap-table",
+    uniqueId: "dictCode",
+    url: prefix + "/list",
+    createUrl: prefix + "/add?dictType=" + encodeURIComponent(dictType),
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    modalName: "字典数据",
+    queryParams: function(params){ params.dictType = dictType; return params; },
+    columns: [
+      {checkbox:true},
+      {field:"dictCode", title:"字典编码"},
+      {field:"dictLabel", title:"字典标签"},
+      {field:"dictValue", title:"字典键值"},
+      {field:"dictSort", title:"排序"},
+      {field:"status", title:"状态", formatter:function(v){return v=="0"?"正常":"停用";}},
+      {field:"remark", title:"备注"},
+      {field:"createTime", title:"创建时间"},
+      {title:"操作", align:"center", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" href="javascript:void(0)" onclick="$.operate.edit(\''+row.dictCode+'\')"><i class="fa fa-edit"></i>编辑</a> '+
+               '<a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="$.operate.remove(\''+row.dictCode+'\')"><i class="fa fa-remove"></i>删除</a>';
+      }}
+    ]
+  });
+});
+</script>
+</body></html>

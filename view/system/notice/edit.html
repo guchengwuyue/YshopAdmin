@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+{include file="/common/header" title="修改公告" /}
+{include file="/common/summernote-css" /}
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content">
+<form class="form-horizontal m" id="form-notice-edit">
+  <input name="noticeId" type="hidden" value="{$notice.noticeId}">
+  <div class="form-group">
+    <label class="col-sm-2 control-label is-required">公告标题：</label>
+    <div class="col-sm-10"><input name="noticeTitle" class="form-control" value="{$notice.noticeTitle}" required></div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">公告类型：</label>
+    <div class="col-sm-10">
+      <select name="noticeType" class="form-control">
+        <option value="1" {if $notice.noticeType=='1'}selected{/if}>通知</option>
+        <option value="2" {if $notice.noticeType=='2'}selected{/if}>公告</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">状态：</label>
+    <div class="col-sm-10">
+      <label class="radio-box"><input type="radio" name="status" value="0" {if $notice.status=='0'}checked{/if}>正常</label>
+      <label class="radio-box"><input type="radio" name="status" value="1" {if $notice.status=='1'}checked{/if}>关闭</label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-sm-2 control-label">公告内容：</label>
+    <div class="col-sm-10">
+      <input id="noticeContent" name="noticeContent" type="hidden" value="{$notice.noticeContent}">
+      <div id="editor" class="summernote"></div>
+    </div>
+  </div>
+</form>
+</div>
+{include file="/common/footer" /}
+{include file="/common/summernote-js" /}
+<script type="text/javascript">
+  var prefix = ctx + "system/notice";
+  $(function () {
+    $('.summernote').summernote({
+      placeholder: '请输入公告内容',
+      height: 192,
+      lang: 'zh-CN',
+      followingToolbar: false,
+      dialogsInBody: true,
+      callbacks: {
+        onImageUpload: function (files) {
+          sendFile(files[0], this);
+        }
+      }
+    });
+    $('#editor').summernote('code', $("#noticeContent").val());
+  });
+  function sendFile(file, obj) {
+    var data = new FormData();
+    data.append("file", file);
+    $.ajax({
+      type: "POST",
+      url: ctx + "common/upload",
+      data: data,
+      cache: false,
+      contentType: false,
+      processData: false,
+      dataType: 'json',
+      success: function (result) {
+        if (result.code == web_status.SUCCESS) {
+          $(obj).summernote('editor.insertImage', result.url, result.fileName);
+        } else {
+          $.modal.alertError(result.msg);
+        }
+      },
+      error: function () {
+        $.modal.alertWarning("图片上传失败。");
+      }
+    });
+  }
+  function submitHandler() {
+    if ($.validate.form()) {
+      $("#noticeContent").val($('.summernote').summernote('code'));
+      $.operate.save(prefix + "/edit", $("#form-notice-edit").serialize());
+    }
+  }
+</script>
+</body>
+</html>

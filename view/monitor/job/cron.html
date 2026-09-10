@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="Cron说明" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content">
+  <p>支持 Quartz 风格 6 段表达式：秒 分 时 日 月 周</p>
+  <ul>
+    <li><code>0/10 * * * * ?</code> — 每 10 秒（调度按分钟粒度检查）</li>
+    <li><code>0 0/5 * * * ?</code> — 每 5 分钟</li>
+    <li><code>0 0 12 * * ?</code> — 每天 12:00</li>
+  </ul>
+  <p>实际调度命令：<code>php think job:run</code>（建议 crontab / 计划任务每分钟执行）</p>
+  <p>调用目标仅允许白名单：<code>ryTask.*</code></p>
+</div>
+{include file="/common/footer" /}
+</body></html>

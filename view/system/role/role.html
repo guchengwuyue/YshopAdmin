@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="角色列表" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="formId"><div class="select-list"><ul>
+<li>角色名称：<input type="text" name="roleName"/></li>
+<li>权限字符：<input type="text" name="roleKey"/></li>
+<li>状态：<select name="status"><option value="">所有</option><option value="0">正常</option><option value="1">停用</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar">
+<a class="btn btn-success" onclick="$.operate.add()"><i class="fa fa-plus"></i> 新增</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.edit()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "system/role";
+$(function(){
+  $.table.init({
+    id: "bootstrap-table",
+    uniqueId: "roleId",
+    url: prefix + "/list",
+    createUrl: prefix + "/add",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    modalName: "角色",
+    columns: [
+      {checkbox:true},
+      {field:"roleId", title:"角色编号"},
+      {field:"roleName", title:"角色名称"},
+      {field:"roleKey", title:"权限字符"},
+      {field:"roleSort", title:"显示顺序"},
+      {field:"dataScope", title:"数据范围"},
+      {field:"status", title:"状态", formatter:function(v,row){ return v=='0'?'正常':'停用'; }},
+      {field:"createTime", title:"创建时间"},
+      {title:"操作", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" onclick="$.operate.edit(\''+row.roleId+'\')"><i class="fa fa-edit"></i></a> '+
+               '<a class="btn btn-info btn-xs" onclick="authDataScope(\''+row.roleId+'\')"><i class="fa fa-check-square-o"></i>数据权限</a> '+
+               '<a class="btn btn-danger btn-xs" onclick="$.operate.remove(\''+row.roleId+'\')"><i class="fa fa-remove"></i></a>';
+      }}
+    ]
+  });
+});
+function authDataScope(roleId){ $.modal.open("分配数据权限", prefix + "/authDataScope/" + roleId); }
+</script>
+</body></html>

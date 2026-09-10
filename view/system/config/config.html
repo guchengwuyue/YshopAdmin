@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="参数" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="formId"><div class="select-list"><ul>
+<li>参数名称：<input type="text" name="configName"/></li><li>参数键名：<input type="text" name="configKey"/></li><li>系统内置：<select name="configType"><option value="">所有</option><option value="Y">是</option><option value="N">否</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar" role="group">
+<a class="btn btn-success" onclick="$.operate.add()"><i class="fa fa-plus"></i> 新增</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.edit()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "system/config";
+$(function(){
+  $.table.init({
+    url: prefix + "/list",
+    createUrl: prefix + "/add",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    modalName: "参数",
+    columns: [
+      {checkbox:true},
+      {field:"configId",title:"参数主键"},
+      {field:"configName",title:"参数名称"},
+      {field:"configKey",title:"参数键名"},
+      {field:"configValue",title:"参数键值"},
+      {field:"configType",title:"系统内置"},
+      {field:"remark",title:"备注"},
+      {field:"createTime",title:"创建时间"},
+      {title:"操作", align:"center", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" href="javascript:void(0)" onclick="$.operate.edit(\''+row.configId+'\')"><i class="fa fa-edit"></i>编辑</a> '+
+               '<a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="$.operate.remove(\''+row.configId+'\')"><i class="fa fa-remove"></i>删除</a>';
+      }}
+    ]
+  });
+});
+
+</script>
+</body></html>

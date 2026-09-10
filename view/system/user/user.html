@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+{include file="/common/header" title="用户列表" /}
+{include file="/common/layout-css" /}
+{include file="/common/ztree-css" /}
+</head>
+<body class="gray-bg">
+<div class="ui-layout-west">
+  <div class="box box-main">
+    <div class="box-header"><div class="box-title"><i class="fa fa-sitemap"></i> 组织机构</div></div>
+    <div class="ui-layout-content"><div id="tree" class="ztree"></div></div>
+  </div>
+</div>
+<div class="ui-layout-center">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="user-form">
+<input type="hidden" id="deptId" name="deptId">
+<div class="select-list"><ul>
+<li>登录名称：<input type="text" name="loginName"/></li>
+<li>手机号码：<input type="text" name="phonenumber"/></li>
+<li>用户状态：<select name="status"><option value="">所有</option><option value="0">正常</option><option value="1">停用</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div>
+</form>
+</div>
+<div class="btn-group-sm" id="toolbar" role="group">
+<a class="btn btn-success" onclick="$.operate.addTab()"><i class="fa fa-plus"></i> 新增</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.editTab()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+<a class="btn btn-info" onclick="$.table.importExcel()"><i class="fa fa-upload"></i> 导入</a>
+<a class="btn btn-warning" onclick="$.table.exportExcel()"><i class="fa fa-download"></i> 导出</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+</div>
+{include file="/common/footer" /}
+{include file="/common/layout-js" /}
+{include file="/common/ztree-js" /}
+<script>
+var prefix = ctx + "system/user";
+$(function(){
+  $('body').layout({ west__size: 185, resizeWithWindow: false });
+  $.table.init({
+    id: "bootstrap-table",
+    uniqueId: "userId",
+    url: prefix + "/list",
+    createUrl: prefix + "/add",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    exportUrl: prefix + "/export",
+    importUrl: prefix + "/importData",
+    importTemplateUrl: prefix + "/importTemplate",
+    modalName: "用户",
+    columns: [
+      {checkbox:true},
+      {field:'userId', title:'用户ID'},
+      {field:'loginName', title:'登录名称'},
+      {field:'userName', title:'用户名称'},
+      {field:'dept.deptName', title:'部门'},
+      {field:'phonenumber', title:'手机'},
+      {field:'status', title:'状态', formatter:function(v,row){ return statusTools(row); }},
+      {field:'createTime', title:'创建时间'},
+      {title:'操作', formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" onclick="$.operate.editTab(\''+row.userId+'\')"><i class="fa fa-edit"></i>编辑</a> '+
+               '<a class="btn btn-danger btn-xs" onclick="$.operate.remove(\''+row.userId+'\')"><i class="fa fa-remove"></i>删除</a> '+
+               '<a class="btn btn-info btn-xs" onclick="resetPwd(\''+row.userId+'\')"><i class="fa fa-key"></i>重置</a>';
+      }}
+    ]
+  });
+  queryDeptTree();
+});
+function queryDeptTree() {
+  var treeUrl = prefix + "/deptTreeData";
+  $.tree.init({
+    url: treeUrl,
+    expandLevel: 2,
+    onClick: function(event, treeId, treeNode) {
+      $("#deptId").val(treeNode.id);
+      $.table.search();
+    }
+  });
+}
+function statusTools(row){
+  if(row.status=='1') return '<i class="fa fa-toggle-off text-info fa-2x" onclick="changeStatus(\''+row.userId+'\',\'0\')"></i>';
+  return '<i class="fa fa-toggle-on text-info fa-2x" onclick="changeStatus(\''+row.userId+'\',\'1\')"></i>';
+}
+function changeStatus(userId,status){ $.operate.post(prefix+"/changeStatus", {"userId":userId,"status":status}); }
+function resetPwd(userId){ $.modal.open("重置密码", prefix+"/resetPwd/"+userId); }
+</script>
+<script id="importTpl" type="text/template">
+<form enctype="multipart/form-data" class="mt20 mb10">
+  <div class="col-xs-offset-1">
+    <input type="file" id="file" name="file"/>
+    <div class="mt10 pt5">
+      <a onclick="$.table.importTemplate()" class="btn btn-default btn-xs"><i class="fa fa-file-excel-o"></i> 下载模板</a>
+    </div>
+    <label class="mt10 checkbox-inline"><input type="checkbox" name="updateSupport" value="1"> 是否更新已经存在的用户数据</label>
+  </div>
+</form>
+</script>
+</body></html>

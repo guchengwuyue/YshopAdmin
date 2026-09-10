@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="操作日志详细" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content">
+<form class="form-horizontal">
+  <div class="form-group"><label class="col-sm-2 control-label">操作模块：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.title} / {$operLog.requestMethod}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">登录信息：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.operName} / {$operLog.operIp}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">请求地址：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.operUrl}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">请求方法：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.method}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">请求参数：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.operParam}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">返回参数：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.jsonResult}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">操作状态：</label><div class="col-sm-10"><p class="form-control-static">{if $operLog.status==0 || $operLog.status=='0'}正常{else/}失败{/if}</p></div></div>
+  <div class="form-group"><label class="col-sm-2 control-label">操作时间：</label><div class="col-sm-10"><p class="form-control-static">{$operLog.operTime}</p></div></div>
+</form>
+</div>
+{include file="/common/footer" /}
+</body></html>

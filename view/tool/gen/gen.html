@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="代码生成" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="gen-form"><div class="select-list"><ul>
+<li>表名称：<input type="text" name="tableName"/></li>
+<li>表描述：<input type="text" name="tableComment"/></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar">
+<a class="btn btn-success" onclick="importTable()"><i class="fa fa-download"></i> 导入</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.edit()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+<a class="btn btn-warning multiple disabled" onclick="genCode()"><i class="fa fa-code"></i> 生成</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "tool/gen";
+$(function(){
+  $.table.init({
+    uniqueId: "tableId",
+    url: prefix + "/list",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    modalName: "代码生成",
+    columns: [
+      {checkbox:true},
+      {field:"tableId", title:"编号"},
+      {field:"tableName", title:"表名称"},
+      {field:"tableComment", title:"表描述"},
+      {field:"className", title:"实体"},
+      {field:"createTime", title:"创建时间"},
+      {field:"updateTime", title:"更新时间"},
+      {title:"操作", formatter:function(v,row){
+        return '<a class="btn btn-info btn-xs" onclick="preview('+row.tableId+')"><i class="fa fa-search"></i>预览</a> '+
+               '<a class="btn btn-success btn-xs" onclick="$.operate.edit(\''+row.tableId+'\')"><i class="fa fa-edit"></i>编辑</a> '+
+               '<a class="btn btn-primary btn-xs" onclick="downloadCode('+row.tableId+')"><i class="fa fa-code"></i>生成</a> '+
+               '<a class="btn btn-danger btn-xs" onclick="$.operate.remove(\''+row.tableId+'\')"><i class="fa fa-remove"></i>删除</a>';
+      }}
+    ]
+  });
+});
+function importTable(){
+  layer.open({
+    type: 1,
+    title: "导入表",
+    area: ["800px","520px"],
+    content: '<div class="container-div" style="padding:15px"><div class="row"><div class="col-sm-12 search-collapse"><form id="db-form"><div class="select-list"><ul><li>表名称：<input type="text" name="tableName"/></li><li><a class="btn btn-primary btn-sm" onclick="searchDb()"><i class="fa fa-search"></i>搜索</a></li></ul></div></form></div><div class="col-sm-12 select-table table-striped"><table id="db-table"></table></div></div></div>',
+    btn: ['导入','取消'],
+    success: function(layero){
+      var $table = $(layero).find('#db-table');
+      $table.bootstrapTable({
+        url: prefix + "/db/list",
+        method: "post",
+        contentType: "application/x-www-form-urlencoded",
+        sidePagination: "server",
+        pageSize: 10,
+        pagination: true,
+        uniqueId: "tableName",
+        queryParams: function(params){
+          return {pageSize: params.limit, pageNum: params.offset/params.limit+1, tableName: $(layero).find('[name=tableName]').val()};
+        },
+        responseHandler: function(res){
+          if (res.code != undefined && res.code != 0) {
+            $.modal.alertWarning(res.msg || "加载失败");
+            return { rows: [], total: 0 };
+          }
+          return { rows: res.rows || [], total: res.total || 0 };
+        },
+        onLoadSuccess: function(){
+          $(layero).find('.fixed-table-loading').hide().css('display', 'none');
+        },
+        columns: [
+          {checkbox:true},
+          {field:"tableName", title:"表名称"},
+          {field:"tableComment", title:"表描述"},
+          {field:"createTime", title:"创建时间"}
+        ]
+      });
+      window.searchDb = function(){ $table.bootstrapTable('refresh'); };
+    },
+    yes: function(index, layero){
+      var rows = $(layero).find('#db-table').bootstrapTable('getSelections');
+      if(!rows.length){ $.modal.alertWarning("请选择要导入的表"); return; }
+      var tables = rows.map(function(r){return r.tableName;}).join(',');
+      $.operate.post(prefix + "/importTable", {tables: tables}, function(){
+        $.table.refresh();
+      });
+      layer.close(index);
+    }
+  });
+}
+function preview(tableId){
+  $.get(prefix + "/preview/" + tableId, function(res){
+    if(res.code != 0){ $.modal.alertError(res.msg); return; }
+    var html = '<pre style="max-height:420px;overflow:auto">';
+    $.each(res.data, function(path, content){
+      html += '===== ' + path + ' =====\n' + $('<div/>').text(content).html() + '\n\n';
+    });
+    html += '</pre>';
+    top.layer.open({type:1,title:"代码预览",area:["900px","560px"],content:html});
+  });
+}
+function downloadCode(tableId){
+  window.location.href = prefix + "/download/" + tableId;
+}
+function genCode(){
+  var rows = $.table.selectColumns("tableId");
+  if(!rows.length){ $.modal.alertWarning("请选择要生成的表"); return; }
+  window.location.href = prefix + "/batchGenCode?tables=" + rows.join();
+}
+</script>
+</body></html>

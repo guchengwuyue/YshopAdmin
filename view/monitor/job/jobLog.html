@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="调度日志" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="joblog-form"><div class="select-list"><ul>
+<li>任务名称：<input type="text" name="jobName" value="{if $job}{$job.jobName}{/if}"/></li>
+<li>任务分组：<input type="text" name="jobGroup" value="{if $job}{$job.jobGroup}{/if}"/></li>
+<li>状态：<select name="status"><option value="">所有</option><option value="0">成功</option><option value="1">失败</option></select></li>
+<input type="hidden" name="jobId" value="{$jobId}"/>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar">
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+<a class="btn btn-danger" onclick="$.operate.clean()"><i class="fa fa-trash"></i> 清空</a>
+<a class="btn btn-warning" onclick="$.table.exportExcel()"><i class="fa fa-download"></i> 导出</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "monitor/jobLog";
+$(function(){
+  $.table.init({
+    uniqueId: "jobLogId",
+    url: prefix + "/list",
+    removeUrl: prefix + "/remove",
+    cleanUrl: prefix + "/clean",
+    exportUrl: prefix + "/export",
+    detailUrl: prefix + "/detail/{id}",
+    modalName: "调度日志",
+    columns: [
+      {checkbox:true},
+      {field:"jobLogId", title:"日志编号"},
+      {field:"jobName", title:"任务名称"},
+      {field:"jobGroup", title:"任务分组"},
+      {field:"invokeTarget", title:"调用目标"},
+      {field:"jobMessage", title:"日志信息"},
+      {field:"status", title:"状态", formatter:function(v){return v=="0"?"成功":"失败";}},
+      {field:"createTime", title:"执行时间"},
+      {title:"操作", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" onclick="$.operate.detail(\''+row.jobLogId+'\')"><i class="fa fa-search"></i>详细</a>';
+      }}
+    ]
+  });
+});
+</script>
+</body></html>

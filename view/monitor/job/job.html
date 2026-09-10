@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="定时任务" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="job-form"><div class="select-list"><ul>
+<li>任务名称：<input type="text" name="jobName"/></li>
+<li>任务分组：<select name="jobGroup"><option value="">所有</option>
+{volist name="jobGroupDict" id="d"}<option value="{$d.dictValue}">{$d.dictLabel}</option>{/volist}
+</select></li>
+<li>任务状态：<select name="status"><option value="">所有</option>
+{volist name="jobStatusDict" id="d"}<option value="{$d.dictValue}">{$d.dictLabel}</option>{/volist}
+</select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar" role="group">
+<a class="btn btn-success" onclick="$.operate.add()"><i class="fa fa-plus"></i> 新增</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.edit()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+<a class="btn btn-warning" onclick="$.table.exportExcel()"><i class="fa fa-download"></i> 导出</a>
+<a class="btn btn-primary" onclick="cron()"><i class="fa fa-code"></i> Cron说明</a>
+<a class="btn btn-info" onclick="jobLog()"><i class="fa fa-list"></i> 日志</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "monitor/job";
+var groupDatas = [
+{volist name="jobGroupDict" id="d"}{dictLabel:"{$d.dictLabel}",dictValue:"{$d.dictValue}"},{/volist}
+];
+$(function(){
+  $.table.init({
+    uniqueId: "jobId",
+    url: prefix + "/list",
+    detailUrl: prefix + "/detail/{id}",
+    createUrl: prefix + "/add",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    exportUrl: prefix + "/export",
+    sortName: "createTime",
+    sortOrder: "desc",
+    modalName: "任务",
+    columns: [
+      {checkbox:true},
+      {field:"jobId", title:"任务编号"},
+      {field:"jobName", title:"任务名称", formatter:function(v,row){
+        return '<a href="javascript:void(0)" onclick="$.operate.detail(\''+row.jobId+'\')">'+v+'</a>';
+      }},
+      {field:"jobGroup", title:"任务分组", formatter:function(v){ return $.table.selectDictLabel(groupDatas, v); }},
+      {field:"invokeTarget", title:"调用目标字符串"},
+      {field:"cronExpression", title:"执行表达式"},
+      {title:"任务状态", align:"center", formatter:function(v,row){ return statusTools(row); }},
+      {field:"createTime", title:"创建时间"},
+      {title:"操作", align:"center", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" href="javascript:;" onclick="$.operate.edit(\''+row.jobId+'\')"><i class="fa fa-edit"></i>编辑</a> '+
+               '<a class="btn btn-danger btn-xs" href="javascript:;" onclick="$.operate.remove(\''+row.jobId+'\')"><i class="fa fa-remove"></i>删除</a> '+
+               '<a class="btn btn-info btn-xs" href="javascript:;" onclick="run('+row.jobId+')"><i class="fa fa-play-circle-o"></i>执行一次</a> '+
+               '<a class="btn btn-default btn-xs" href="javascript:;" onclick="jobLog('+row.jobId+')"><i class="fa fa-list"></i>日志</a>';
+      }}
+    ]
+  });
+});
+function statusTools(row){
+  if(row.status == 1 || row.status == '1'){
+    return '<i class="fa fa-toggle-off text-info fa-2x" onclick="start(\''+row.jobId+'\')"></i>';
+  }
+  return '<i class="fa fa-toggle-on text-info fa-2x" onclick="stop(\''+row.jobId+'\')"></i>';
+}
+function run(jobId){
+  $.modal.confirm("确认要立即执行一次任务吗？", function(){
+    $.operate.post(prefix + "/run", {"jobId": jobId});
+  });
+}
+function stop(jobId){
+  $.modal.confirm("确认要停用任务吗？", function(){
+    $.operate.post(prefix + "/changeStatus", {"jobId": jobId, "status": 1});
+  });
+}
+function start(jobId){
+  $.modal.confirm("确认要启用任务吗？", function(){
+    $.operate.post(prefix + "/changeStatus", {"jobId": jobId, "status": 0});
+  });
+}
+function jobLog(jobId){
+  var url = ctx + "monitor/jobLog";
+  if($.common.isNotEmpty(jobId)){ url += "?jobId=" + jobId; }
+  $.modal.openTab("调度日志", url);
+}
+function cron(){
+  $.modal.open("Cron表达式说明", prefix + "/cron");
+}
+</script>
+</body></html>

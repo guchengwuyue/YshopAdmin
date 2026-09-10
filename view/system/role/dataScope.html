@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="分配数据权限" /}{include file="/common/ztree-css" /}</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content">
+<form class="form-horizontal m" id="form-role-scope">
+  <input name="roleId" type="hidden" value="{$role.roleId}">
+  <input type="hidden" id="deptIds" name="deptIds">
+  <div class="form-group"><label class="col-sm-3 control-label">角色名称：</label><div class="col-sm-8"><input class="form-control" value="{$role.roleName}" readonly></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">权限字符：</label><div class="col-sm-8"><input class="form-control" value="{$role.roleKey}" readonly></div></div>
+  <div class="form-group"><label class="col-sm-3 control-label">权限范围：</label><div class="col-sm-8">
+    <select name="dataScope" id="dataScope" class="form-control">
+      <option value="1" {if $role.dataScope=='1'}selected{/if}>全部数据权限</option>
+      <option value="2" {if $role.dataScope=='2'}selected{/if}>自定数据权限</option>
+      <option value="3" {if $role.dataScope=='3'}selected{/if}>本部门数据权限</option>
+      <option value="4" {if $role.dataScope=='4'}selected{/if}>本部门及以下数据权限</option>
+      <option value="5" {if $role.dataScope=='5'}selected{/if}>仅本人数据权限</option>
+    </select>
+  </div></div>
+  <div class="form-group" id="deptTreeRow"><label class="col-sm-3 control-label">数据权限：</label><div class="col-sm-8"><div id="deptTrees" class="ztree"></div></div></div>
+</form>
+</div>
+{include file="/common/footer" /}{include file="/common/ztree-js" /}
+<script>
+$(function(){
+  var setting = {check:{enable:true, chkboxType:{"Y":"ps","N":"ps"}}, data:{simpleData:{enable:true}}};
+  $.get(ctx + "system/role/deptTreeData?roleId={$role.roleId}", function(data){
+    if (!$.isArray(data)) { data = []; }
+    $.fn.zTree.init($("#deptTrees"), setting, data);
+  });
+  $("#dataScope").change(function(){ $("#deptTreeRow").toggle($(this).val()=="2"); }).trigger("change");
+});
+function submitHandler(){
+  var tree = $.fn.zTree.getZTreeObj("deptTrees");
+  var nodes = tree ? tree.getCheckedNodes(true) : [];
+  var ids = [];
+  for (var i=0;i<nodes.length;i++){ ids.push(nodes[i].id); }
+  $("#deptIds").val(ids.join(","));
+  $.operate.save(ctx+"system/role/authDataScope", $("#form-role-scope").serialize());
+}
+</script>
+</body></html>

@@ -1,0 +1,7 @@
+*
+!.gitignore
+!*/
+!*/**
+**/certs/*
+!**/certs/.gitkeep
+**/data/config.php

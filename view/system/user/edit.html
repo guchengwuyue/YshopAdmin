@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+{include file="/common/header" title="修改用户" /}
+{include file="/common/select2-css" /}
+</head>
+<body>
+<div class="main-content">
+<form class="form-horizontal" id="form-user-edit">
+  <input name="userId" type="hidden" value="{$user.userId}">
+  <input name="deptId" type="hidden" id="treeId" value="{$user.deptId}">
+  <h4 class="form-header h4">基本信息</h4>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label is-required">用户名称：</label>
+        <div class="col-sm-8">
+          <input name="userName" placeholder="请输入用户名称" class="form-control" type="text" maxlength="30" value="{$user.userName}" required>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">归属部门：</label>
+        <div class="col-sm-8">
+          <div class="input-group">
+            <input class="form-control" type="text" name="deptName" onclick="selectDeptTree()" id="treeName" value="{$user.dept.deptName|default=''}" readonly placeholder="请选择归属部门">
+            <span class="input-group-addon" onclick="selectDeptTree()" style="cursor:pointer"><i class="fa fa-search"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">手机号码：</label>
+        <div class="col-sm-8">
+          <div class="input-group">
+            <input id="phonenumber" name="phonenumber" placeholder="请输入手机号码" class="form-control" type="text" maxlength="11" value="{$user.phonenumber}">
+            <span class="input-group-addon"><i class="fa fa-mobile"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">邮箱：</label>
+        <div class="col-sm-8">
+          <div class="input-group">
+            <input id="email" name="email" class="form-control" type="text" maxlength="50" placeholder="请输入邮箱" value="{$user.email}">
+            <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label is-required">登录账号：</label>
+        <div class="col-sm-8">
+          <input class="form-control" type="text" value="{$user.loginName}" readonly>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">用户状态：</label>
+        <div class="col-sm-8">
+          <label class="toggle-switch switch-solid">
+            <input type="checkbox" id="status" {if $user.status=='0'}checked{/if}>
+            <span></span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">岗位：</label>
+        <div class="col-sm-8">
+          <select id="post" class="form-control select2-multiple" multiple>
+            {volist name="posts" id="p"}
+            <option value="{$p.postId}" {in name="p.postId" value="$postIds"}selected{/in}>{$p.postName}</option>
+            {/volist}
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-group">
+        <label class="col-sm-4 control-label">用户性别：</label>
+        <div class="col-sm-8">
+          <select name="sex" class="form-control m-b">
+            {volist name="sexDict" id="d"}
+            <option value="{$d.dictValue}" {if isset($user.sex) && $user.sex==$d.dictValue}selected{/if}>{$d.dictLabel}</option>
+            {/volist}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="form-group">
+        <label class="col-xs-2 control-label">角色：</label>
+        <div class="col-xs-10">
+          {volist name="roles" id="r"}
+          <label class="check-box">
+            <input name="role" type="checkbox" value="{$r.roleId}" {in name="r.roleId" value="$roleIds"}checked{/in}>{$r.roleName}
+          </label>
+          {/volist}
+        </div>
+      </div>
+    </div>
+  </div>
+  <h4 class="form-header h4">其他信息</h4>
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="form-group">
+        <label class="col-xs-2 control-label">备注：</label>
+        <div class="col-xs-10">
+          <textarea name="remark" maxlength="500" class="form-control" rows="3">{$user.remark}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+</div>
+<div class="row">
+  <div class="col-sm-offset-5 col-sm-10">
+    <button type="button" class="btn btn-sm btn-primary" onclick="submitHandler()"><i class="fa fa-check"></i>保 存</button>&nbsp;
+    <button type="button" class="btn btn-sm btn-danger" onclick="closeItem()"><i class="fa fa-reply-all"></i>关 闭</button>
+  </div>
+</div>
+{include file="/common/footer" /}
+{include file="/common/select2-js" /}
+<script>
+var prefix = ctx + "system/user";
+
+$("#form-user-edit").validate({
+  onkeyup: false,
+  rules: {
+    email: { email: true },
+    phonenumber: { isPhone: true }
+  },
+  focusCleanup: true
+});
+
+function submitHandler() {
+  if ($.validate.form()) {
+    var data = $("#form-user-edit").serializeArray();
+    var status = $("#status").is(":checked") ? 0 : 1;
+    var roleIds = $.form.selectCheckeds("role");
+    var postIds = $.form.selectSelects("post");
+    data.push({ name: "status", value: status });
+    data.push({ name: "roleIds", value: roleIds });
+    data.push({ name: "postIds", value: postIds });
+    $.operate.saveTab(prefix + "/edit", data);
+  }
+}
+
+function selectDeptTree() {
+  var treeId = $("#treeId").val();
+  var deptId = $.common.isEmpty(treeId) ? "100" : treeId;
+  var url = prefix + "/selectDeptTree/" + deptId;
+  var btn = ['<i class="fa fa-check"></i> 确认', '<i class="fa fa-trash-o"></i> 清除', '<i class="fa fa-close"></i> 关闭'];
+  $.modal.openOptions({
+    title: "选择部门",
+    width: "380",
+    url: url,
+    btn: btn,
+    btn2: function(index) {
+      $("#treeId").val("");
+      $("#treeName").val("");
+      $.modal.close(index);
+    },
+    callBack: function(index, layero) {
+      var body = $.modal.getChildFrame(index);
+      $("#treeId").val(body.find("#treeId").val());
+      $("#treeName").val(body.find("#treeName").val());
+      $.modal.close(index);
+    }
+  });
+}
+
+$(function() {
+  $("#post").select2({ placeholder: "请选择岗位", allowClear: true });
+});
+</script>
+</body>
+</html>

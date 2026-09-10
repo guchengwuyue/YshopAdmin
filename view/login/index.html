@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>登录 YshopAdmin</title>
+    <meta name="description" content="YshopAdmin 快速开发平台">
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/style.min.css" rel="stylesheet"/>
+    <link href="/css/login.min.css" rel="stylesheet"/>
+    <link href="/ruoyi/css/ry-ui.css?v=1.0.0" rel="stylesheet"/>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="/favicon.ico"/>
+    <style type="text/css">label.error { position:inherit;  }</style>
+    <script>
+        if(window.top!==window.self){alert('未登录或登录超时。请重新登录');window.top.location=window.location};
+    </script>
+</head>
+<body class="signin">
+    <div class="login-wrap">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="login-brand-deco"></div>
+                <div class="login-brand-content">
+                    <img class="login-logo" alt="YshopAdmin" src="/yshop.png">
+                    <h1 class="login-brand-title">YshopAdmin</h1>
+                    <p class="login-brand-subtitle">快速开发平台</p>
+                </div>
+            </div>
+            <div class="login-form-panel">
+                <form id="signupForm" autocomplete="off">
+                    <h4 class="login-form-title">用户登录</h4>
+                    <div class="input-with-icon">
+                        <i class="fa fa-user"></i>
+                        <input type="text" name="username" class="form-control uname" placeholder="用户名" value="admin"/>
+                    </div>
+                    <div class="input-with-icon">
+                        <i class="fa fa-lock"></i>
+                        <input type="password" name="password" id="password" class="form-control pword" placeholder="密码" value="admin123"/>
+                        <i class="fa fa-eye-slash pwd-toggle" id="pwdToggle" title="显示/隐藏密码"></i>
+                    </div>
+                    {if $captchaEnabled}
+                    <div class="captcha-row">
+                        <div class="input-with-icon captcha-input">
+                            <i class="fa fa-shield"></i>
+                            <input type="text" name="validateCode" class="form-control code" placeholder="验证码" maxlength="5"/>
+                        </div>
+                        <a href="javascript:void(0);" class="captcha-img-wrap" title="点击更换验证码">
+                            <img src="/captcha/captchaImage?type={$captchaType}" class="imgcode" alt="验证码"/>
+                        </a>
+                    </div>
+                    {/if}
+                    <div class="form-options">
+                        <div class="checkbox-custom">
+                            <input type="checkbox" name="rememberme" id="rememberme"/>
+                            <label for="rememberme">记住密码</label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-login btn-block" id="btnSubmit" data-loading="正在验证登录，请稍候...">确定</button>
+                </form>
+            </div>
+        </div>
+        <div class="login-footer">
+            Copyright &copy; 2018-2026 YshopAdmin / yixiang.coAll Rights Reserved.
+        </div>
+    </div>
+<script> var ctx = '/'; var captchaType = '{$captchaType}'; var captchaEnabled = {if $captchaEnabled}true{else}false{/if};</script>
+<script src="/js/jquery.min.js"></script>
+<script src="/ajax/libs/validate/jquery.validate.min.js"></script>
+<script src="/ajax/libs/layer/layer.min.js"></script>
+<script src="/ajax/libs/blockUI/jquery.blockUI.js"></script>
+<script src="/ruoyi/js/ry-ui.js?v=1.0.0"></script>
+<script src="/ruoyi/login.js"></script>
+<script>
+$(function () {
+    $('#pwdToggle').on('click', function () {
+        var $pwd = $('#password');
+        var show = $pwd.attr('type') === 'password';
+        $pwd.attr('type', show ? 'text' : 'password');
+        $(this).toggleClass('fa-eye-slash fa-eye');
+    });
+});
+</script>
+</body>
+</html>

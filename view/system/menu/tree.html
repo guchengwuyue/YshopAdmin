@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+{include file="/common/header" title="菜单树选择" /}
+{include file="/common/ztree-css" /}
+</head>
+<style>
+body{height:auto;font-family:"Microsoft YaHei";}
+button{font-family:"SimSun","Helvetica Neue",Helvetica,Arial;}
+</style>
+<body class="hold-transition box box-main">
+<input id="treeId" name="treeId" type="hidden" value="{$menu.menuId|default=''}">
+<input id="treeName" name="treeName" type="hidden" value="{$menu.menuName|default=''}">
+<div class="wrapper">
+  <div class="treeShowHideButton" onclick="$.tree.toggleSearch();">
+    <label id="btnShow" title="显示搜索" style="display:none;">︾</label>
+    <label id="btnHide" title="隐藏搜索">︽</label>
+  </div>
+  <div class="treeSearchInput" id="search">
+    <label for="keyword">关键字：</label><input type="text" class="empty" id="keyword" maxlength="50">
+    <button class="btn" id="btn" onclick="$.tree.searchNode()"> 搜索 </button>
+  </div>
+  <div class="treeExpandCollapse">
+    <a href="javascript:;" onclick="$.tree.expand()">展开</a> /
+    <a href="javascript:;" onclick="$.tree.collapse()">折叠</a>
+  </div>
+  <div id="tree" class="ztree treeselect"></div>
+</div>
+{include file="/common/footer" /}
+{include file="/common/ztree-js" /}
+<script>
+var prefix = ctx + "system/menu";
+var excludeId = "{$excludeId|default=0}";
+$(function() {
+  $.tree.init({
+    url: prefix + "/treeData/" + excludeId,
+    expandLevel: 2,
+    onClick: function(event, treeId, treeNode) {
+      $("#treeId").val(treeNode.id);
+      $("#treeName").val(treeNode.name);
+    }
+  });
+});
+</script>
+</body>
+</html>

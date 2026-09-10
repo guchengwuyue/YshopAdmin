@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="renderer" content="webkit">
+    <title>{$sideTitle|default='意象系统首页'}</title>
+ 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link href="/favicon.ico" rel="shortcut icon"/>
+    <link href="/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/jquery.contextMenu.min.css" rel="stylesheet"/>
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/animate.min.css" rel="stylesheet"/>
+    <link href="/css/style.min.css" rel="stylesheet"/>
+    <link href="/css/skins.css?v=20260904" rel="stylesheet"/>
+    <link href="/ruoyi/css/ry-ui.css?v=1.0.0" rel="stylesheet"/>
+</head>
+<body class="fixed-sidebar full-height-layout gray-bg skin-purple theme-light" style="overflow: hidden">
+<div id="wrapper">
+    <nav class="navbar-default navbar-static-side" role="navigation">
+        <div class="nav-close"><i class="fa fa-times-circle"></i></div>
+        <a href="/index">
+            <li class="logo hidden-xs">
+                <span class="logo-lg">{$sideTitle|default='RuoYi'}</span>
+            </li>
+         </a>
+        <div class="sidebar-collapse">
+            <ul class="nav" id="side-menu">
+            	<li>
+            		<div class="user-panel">
+            			<a class="menuItem noactive" title="个人中心" href="/system/user/profile">
+					        <div class="pull-left image">
+                                {if condition="!empty($user.avatar)"}
+                                <img src="{$user.avatar}" onerror="this.src='/img/profile.jpg'" class="img-circle" alt="User Image">
+                                {else/}
+                                <img src="/img/profile.jpg" class="img-circle" alt="User Image">
+                                {/if}
+					        </div>
+				        </a>
+				        <div class="pull-left info">
+				          <p>{$user.loginName}</p>
+				          <a href="javascript:;"><i class="fa fa-circle text-success"></i> 在线</a>
+				          <a href="/logout" style="padding-left:5px;"><i class="fa fa-sign-out text-danger"></i> 注销</a>
+				        </div>
+				    </div>
+            	</li>
+                <li>
+                    <a class="menuItem" href="/system/main"><i class="fa fa-home"></i> <span class="nav-label">首页</span> </a>
+                </li>
+                {volist name="menus" id="menu"}
+                <li>
+                	<a {if condition="!empty($menu.url) && $menu.url != '#'"}class="{$menu.target|default=''}" href="{$menu.url}"{else/}href="#"{/if} data-refresh="{eq name='menu.isRefresh' value='0'}true{else/}false{/eq}">
+                		<i class="{$menu.icon|default='fa fa-bar-chart-o'}"></i>
+                    	<span class="nav-label">{$menu.menuName}</span>
+                    	{if condition="empty($menu.url) || $menu.url == '#'"}<span class="fa arrow"></span>{/if}
+                	</a>
+                    <ul class="nav nav-second-level collapse">
+                        {volist name="menu.children" id="cmenu"}
+						<li>
+                            {if condition="empty($cmenu.children)"}
+							<a class="{$cmenu.target|default='menuItem'}" href="{$cmenu.url}" data-refresh="{eq name='cmenu.isRefresh' value='0'}true{else/}false{/eq}"><i class="{$cmenu.icon|default='fa fa-bar-chart-o'}"></i> {$cmenu.menuName}</a>
+                            {else/}
+							<a href="javascript:;"><i class="{$cmenu.icon|default='fa fa-bar-chart-o'}"></i> {$cmenu.menuName}<span class="fa arrow"></span></a>
+							<ul class="nav nav-third-level">
+                                {volist name="cmenu.children" id="emenu"}
+								<li>
+                                    {if condition="empty($emenu.children)"}
+								    <a class="{$emenu.target|default='menuItem'}" href="{$emenu.url}" data-refresh="{eq name='emenu.isRefresh' value='0'}true{else/}false{/eq}">{$emenu.menuName}</a>
+                                    {else/}
+								    <a href="javascript:;">{$emenu.menuName}<span class="fa arrow"></span></a>
+								    <ul class="nav nav-four-level">
+                                        {volist name="emenu.children" id="fmenu"}
+								      	<li><a class="{$fmenu.target|default='menuItem'}" href="{$fmenu.url}" data-refresh="{eq name='fmenu.isRefresh' value='0'}true{else/}false{/eq}">{$fmenu.menuName}</a></li>
+                                        {/volist}
+								    </ul>
+                                    {/if}
+								</li>
+                                {/volist}
+							</ul>
+                            {/if}
+						</li>
+                        {/volist}
+					</ul>
+                </li>
+                {/volist}
+            </ul>
+        </div>
+    </nav>
+
+    <div id="page-wrapper" class="gray-bg dashbard-1">
+        <div class="row border-bottom">
+            <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
+                <div class="navbar-header">
+                    <a class="navbar-minimalize minimalize-styl-2" style="color:#FFF;" href="javascript:;" title="收起菜单">
+                    	<i class="fa fa-bars"></i>
+                    </a>
+                </div>
+                <ul class="nav navbar-top-links navbar-right welcome-message">
+	                <li><a data-toggle="tooltip" data-placement="bottom" title="全屏显示" href="javascript:;" id="fullScreen"><i class="fa fa-arrows-alt"></i> 全屏</a></li>
+                    <li class="dropdown user-menu">
+						<a href="javascript:void(0)" class="dropdown-toggle" data-hover="dropdown">
+							<img src="{$user.avatar|default='/img/profile.jpg'}" onerror="this.src='/img/profile.jpg'" class="user-image">
+							<span class="hidden-xs">{$user.userName|default='-'}</span>
+						</a>
+						<ul class="dropdown-menu">
+							<li class="mt5">
+								<a href="/system/user/profile" class="menuItem noactive"><i class="fa fa-user"></i> 个人中心</a>
+							</li>
+							<li class="divider"></li>
+							<li>
+								<a href="/logout"><i class="fa fa-sign-out"></i> 退出登录</a>
+							</li>
+						</ul>
+					</li>
+                </ul>
+            </nav>
+        </div>
+        <div class="row content-tabs">
+            <button class="roll-nav roll-left tabLeft"><i class="fa fa-backward"></i></button>
+            <nav class="page-tabs menuTabs">
+                <div class="page-tabs-content">
+                    <a href="javascript:;" class="menuTab" data-id="/system/main">首页</a>
+                </div>
+            </nav>
+            <button class="roll-nav roll-right tabRight"><i class="fa fa-forward"></i></button>
+            <a href="javascript:void(0);" class="roll-nav roll-right tabReload"><i class="fa fa-refresh"></i> 刷新</a>
+        </div>
+        <a id="ax_close_max" class="ax_close_max" href="javascript:;" title="关闭全屏"> <i class="fa fa-times-circle-o"></i> </a>
+        <div class="row mainContent" id="content-main">
+            <iframe class="RuoYi_iframe" name="iframe0" width="100%" height="100%" data-id="/system/main" src="/system/main" frameborder="0" seamless></iframe>
+        </div>
+        <div class="footer">
+            <div class="pull-right">&copy; 2026 YshopAdmin / 意象 Copyright </div>
+        </div>
+    </div>
+</div>
+<script src="/js/jquery.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+<script src="/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+<script src="/js/jquery.contextMenu.min.js"></script>
+<script src="/ajax/libs/blockUI/jquery.blockUI.js"></script>
+<script src="/ajax/libs/layer/layer.min.js"></script>
+<script src="/ruoyi/js/ry-ui.js?v=1.0.0"></script>
+<script src="/ruoyi/js/common.js?v=1.0.0"></script>
+<script src="/ruoyi/index.js?v=20201208"></script>
+<script src="/ajax/libs/fullscreen/jquery.fullscreen.js"></script>
+<script>
+var ctx = '/';
+var skin = storage.get("skin");
+var mode = "history";
+var historyPath = storage.get("historyPath");
+(function () {
+    // 顶部紫色 + 左侧浅色菜单 + 紫色页签（对齐设计图）
+    var defaultSkin = "skin-purple|theme-light";
+    skin = defaultSkin;
+    storage.set("skin", skin);
+    var parts = skin.split('|');
+    var bodyObj = $("body");
+    bodyObj.removeClass("skin-blue skin-green skin-purple skin-red skin-yellow theme-dark theme-light theme-blue");
+    bodyObj.addClass(parts[0]);
+    bodyObj.addClass(parts[1]);
+})();
+</script>
+</body>
+</html>

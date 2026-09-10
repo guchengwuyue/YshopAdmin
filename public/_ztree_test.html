@@ -1,0 +1,17 @@
+﻿<!DOCTYPE html>
+<html><head>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="d:/web/www/yshopplugin/YshopAdmin/public/ajax/libs/jquery-ztree/3.5/js/jquery.ztree.all-3.5.js"></script>
+</head><body>
+<div id="tree" class="ztree"></div>
+<script>
+var data = [{"id":100,"pId":0,"name":"意象科技","title":"意象科技","checked":false,"open":true},{"id":101,"pId":100,"name":"深圳总公司","title":"深圳总公司","checked":false,"open":true},{"id":102,"pId":100,"name":"长沙分公司","title":"长沙分公司","checked":false,"open":true},{"id":103,"pId":101,"name":"研发部门","title":"研发部门","checked":false,"open":true},{"id":104,"pId":101,"name":"市场部门","title":"市场部门","checked":false,"open":true},{"id":105,"pId":101,"name":"测试部门","title":"测试部门","checked":false,"open":true},{"id":106,"pId":101,"name":"财务部门","title":"财务部门","checked":false,"open":true},{"id":107,"pId":101,"name":"运维部门","title":"运维部门","checked":false,"open":true},{"id":108,"pId":102,"name":"市场部门","title":"市场部门","checked":false,"open":true},{"id":109,"pId":102,"name":"财务部门","title":"财务部门","checked":false,"open":true}];
+var setting = {view:{selectedMulti:false}, data:{simpleData:{enable:true}}, callback:{onClick:function(e,id,node){}}};
+try {
+  $.fn.zTree.init($("#tree"), setting, data);
+  console.log("OK nodes=" + $.fn.zTree.getZTreeObj("tree").getNodes().length);
+} catch(e) {
+  console.error("ERR " + e.message + "\n" + e.stack);
+}
+</script>
+</body></html>

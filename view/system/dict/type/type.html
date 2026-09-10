@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>{include file="/common/header" title="字典类型" /}</head>
+<body class="gray-bg">
+<div class="container-div"><div class="row">
+<div class="col-sm-12 search-collapse">
+<form id="formId"><div class="select-list"><ul>
+<li>字典名称：<input type="text" name="dictName"/></li><li>字典类型：<input type="text" name="dictType"/></li><li>状态：<select name="status"><option value="">所有</option><option value="0">正常</option><option value="1">停用</option></select></li>
+<li><a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+<a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a></li>
+</ul></div></form>
+</div>
+<div class="btn-group-sm" id="toolbar" role="group">
+<a class="btn btn-success" onclick="$.operate.add()"><i class="fa fa-plus"></i> 新增</a>
+<a class="btn btn-primary single disabled" onclick="$.operate.edit()"><i class="fa fa-edit"></i> 修改</a>
+<a class="btn btn-danger multiple disabled" onclick="$.operate.removeAll()"><i class="fa fa-remove"></i> 删除</a>
+</div>
+<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
+</div></div>
+{include file="/common/footer" /}
+<script>
+var prefix = ctx + "system/dict";
+$(function(){
+  $.table.init({
+    url: prefix + "/list",
+    createUrl: prefix + "/add",
+    updateUrl: prefix + "/edit/{id}",
+    removeUrl: prefix + "/remove",
+    modalName: "字典类型",
+    columns: [
+      {checkbox:true},
+      {field:"dictId",title:"字典编号"},
+      {field:"dictName",title:"字典名称"},
+      {field:"dictType",title:"字典类型",formatter:function(v,row){return '<a href="javascript:;" onclick="openData(\''+row.dictId+'\',\''+v+'\')">'+v+'</a>';}},
+      {field:"status",title:"状态",formatter:function(v){return v=="0"?"正常":"停用";}},
+      {field:"remark",title:"备注"},
+      {field:"createTime",title:"创建时间"},
+      {title:"操作", align:"center", formatter:function(v,row){
+        return '<a class="btn btn-success btn-xs" href="javascript:void(0)" onclick="$.operate.edit(\''+row.dictId+'\')"><i class="fa fa-edit"></i>编辑</a> '+
+               '<a class="btn btn-info btn-xs" href="javascript:void(0)" onclick="openData(\''+row.dictId+'\',\''+row.dictType+'\')"><i class="fa fa-list-ul"></i>列表</a> '+
+               '<a class="btn btn-danger btn-xs" href="javascript:void(0)" onclick="$.operate.remove(\''+row.dictId+'\')"><i class="fa fa-remove"></i>删除</a>';
+      }}
+    ]
+  });
+});
+function openData(dictId,dictType){ $.modal.openTab("字典数据", ctx+"system/dict/data/"+dictId+"?dictType="+encodeURIComponent(dictType)); }
+</script>
+</body></html>
