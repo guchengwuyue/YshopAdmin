@@ -98,6 +98,7 @@
 
 ```text
 YshopAdmin/
+├── addons/                  # 插件功能
 ├── app/
 │   ├── controller/          # 控制器（system / monitor / tool）
 │   ├── service/             # 业务逻辑 XxxService
