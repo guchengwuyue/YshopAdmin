@@ -28,6 +28,23 @@ class AddonAsset extends BaseController
         if (!is_file($file)) {
             return response('Not Found', 404);
         }
-        return download($file, basename($file))->force(false);
+        $mime = match (strtolower(pathinfo($file, PATHINFO_EXTENSION))) {
+            'css' => 'text/css; charset=utf-8',
+            'js' => 'application/javascript; charset=utf-8',
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'woff' => 'font/woff',
+            'woff2' => 'font/woff2',
+            'ttf' => 'font/ttf',
+            'ico' => 'image/x-icon',
+            'json' => 'application/json; charset=utf-8',
+            'map' => 'application/json; charset=utf-8',
+            default => 'application/octet-stream',
+        };
+        return Response::create((string) file_get_contents($file), 'html', 200)
+            ->contentType($mime)
+            ->header(['Cache-Control' => 'public, max-age=86400']);
     }
 }

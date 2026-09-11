@@ -27,7 +27,11 @@
         "topthink/think-view": "^2.0",
         "topthink/think-multi-app": "^1.1",
         "phpoffice/phpspreadsheet": "^5.9",
-        "yansongda/pay": "3.7"
+        "yansongda/pay": "3.7",
+        "hyperf/pimple": "^2.2",
+        "guzzlehttp/guzzle": "^7.0",
+        "league/flysystem-aws-s3-v3": "^3.35",
+        "overtrue/wechat": "^5.36"
     },
     "require-dev": {
         "topthink/think-dumper": "^1.0",
@@ -43,7 +47,10 @@
         }
     },
     "config": {
-        "preferred-install": "dist"
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "easywechat-composer/easywechat-composer": false
+        }
     },
     "scripts": {
         "post-autoload-dump": [

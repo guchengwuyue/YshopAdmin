@@ -657,7 +657,18 @@ class AddonManager
         $sql = str_replace(["\r\n", "\r"], "\n", $sql);
         $parts = array_filter(array_map('trim', explode(";\n", $sql)));
         foreach ($parts as $statement) {
-            if ($statement === '' || str_starts_with($statement, '--')) {
+            // 去掉语句前的行注释，避免 "-- xxx\nCREATE ..." 被整段跳过
+            $lines = preg_split("/\n/", $statement) ?: [];
+            $kept = [];
+            foreach ($lines as $line) {
+                $trimLine = ltrim($line);
+                if ($trimLine === '' || str_starts_with($trimLine, '--')) {
+                    continue;
+                }
+                $kept[] = $line;
+            }
+            $statement = trim(implode("\n", $kept));
+            if ($statement === '') {
                 continue;
             }
             Db::execute($statement);

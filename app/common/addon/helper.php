@@ -5,7 +5,7 @@ use app\common\addon\AddonManager;
 
 if (!function_exists('addon_path')) {
     /**
-     * 插件根目录（末尾带分隔符）
+     * Addon root path (trailing separator)
      */
     function addon_path(string $name = ''): string
     {
@@ -18,9 +18,9 @@ if (!function_exists('addon_path')) {
 
 if (!function_exists('addon_view')) {
     /**
-     * 插件视图绝对路径（带 .html，供 View::fetch 使用，不改 view_path）
-     * @param string $name 插件标识
-     * @param string $template 相对路径，如 addons/addons 或 api/wechat
+     * Absolute addon view path for View::fetch (do not change view_path)
+     * @param string $name addon name
+     * @param string $template relative template e.g. config/index or api/wechat
      */
     function addon_view(string $name, string $template): string
     {
@@ -34,7 +34,7 @@ if (!function_exists('addon_view')) {
 
 if (!function_exists('get_addon_info')) {
     /**
-     * 读取插件 info.ini
+     * Read addon info.ini
      */
     function get_addon_info(string $name): array
     {
@@ -44,7 +44,7 @@ if (!function_exists('get_addon_info')) {
 
 if (!function_exists('get_addon_config')) {
     /**
-     * 读取插件扁平配置
+     * Read flat addon config
      */
     function get_addon_config(string $name): array
     {
@@ -54,7 +54,7 @@ if (!function_exists('get_addon_config')) {
 
 if (!function_exists('set_addon_info')) {
     /**
-     * 写入插件 info.ini
+     * Write addon info.ini
      */
     function set_addon_info(string $name, array $info): bool
     {
@@ -64,7 +64,7 @@ if (!function_exists('set_addon_info')) {
 
 if (!function_exists('set_addon_config')) {
     /**
-     * 写入插件配置值
+     * Write addon config values
      */
     function set_addon_config(string $name, array $config): bool
     {
@@ -74,22 +74,43 @@ if (!function_exists('set_addon_config')) {
 
 if (!function_exists('addon_url')) {
     /**
-     * 生成插件 URL
-     * @param string $url 形如 yspay/api/notifyx
+     * Build addon public URL as a literal path (not ThinkPHP controller url())
+     * @param string $url e.g. yspay/api/notifyx or addons/yspay/api/wechat
      */
-    function addon_url(string $url, array $vars = [], bool $suffix = true, $domain = false): string
+    function addon_url(string $url, array $vars = [], bool $suffix = false, $domain = false): string
     {
         $url = ltrim(str_replace('.', '/', $url), '/');
         if (!str_starts_with($url, 'addons/')) {
             $url = 'addons/' . $url;
         }
-        return (string) url($url, $vars, $suffix, $domain);
+        // Do not call url(): ThinkPHP treats "addons/..." as controller path
+        // and generates "/yspay/..." which auto-routes to app\controller\Yspay.
+        $path = '/' . $url;
+        if ($vars !== []) {
+            $path .= (str_contains($path, '?') ? '&' : '?') . http_build_query($vars);
+        }
+        if ($domain === true || $domain === 'auto') {
+            try {
+                $req = request();
+                $root = rtrim((string) $req->domain() . (string) $req->root(), '/');
+            } catch (\Throwable) {
+                $root = '';
+            }
+            if ($root === '' || !preg_match('#^https?://#i', $root)) {
+                return $path;
+            }
+            return $root . $path;
+        }
+        if (is_string($domain) && $domain !== '') {
+            return rtrim($domain, '/') . $path;
+        }
+        return $path;
     }
 }
 
 if (!function_exists('hook')) {
     /**
-     * 触发插件事件（桥接 Think Event）
+     * Trigger addon event via Think Event
      */
     function hook(string $event, mixed $params = null): mixed
     {
