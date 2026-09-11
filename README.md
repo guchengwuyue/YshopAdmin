@@ -52,6 +52,7 @@
 ![表单构建](./docs/images/demo-form.png)
 
 ![代码生成](./docs/images/demo-codegen.png)
+![插件管理](./docs/9999.png)
 
 
 
