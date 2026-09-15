@@ -5,6 +5,7 @@ namespace app\middleware;
 
 use app\common\AjaxResult;
 use app\common\Auth;
+use app\common\Entry;
 use think\Request;
 
 /**
@@ -35,7 +36,7 @@ class Permission
                 return AjaxResult::error('没有权限，请联系管理员授权', 403);
             }
             // 页面请求：提示后回登录（避免 iframe 里干瞪 403）
-            $url = (string) url('/login');
+            $url = Entry::url('/login');
             $msg = '登录超时或无权访问，请重新登录';
             $html = '<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'
                 . '<title>' . htmlspecialchars($msg, ENT_QUOTES, 'UTF-8') . '</title>'

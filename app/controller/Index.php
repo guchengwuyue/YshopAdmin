@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\controller;
 
 use app\common\Auth;
+use app\common\Entry;
 use app\service\ConfigService;
 use app\service\MenuService;
 use think\facade\View;
@@ -20,7 +21,7 @@ class Index extends BaseController
     {
         $user = Auth::getLoginUser();
         if (!$user) {
-            return redirect((string) url('/login'));
+            return redirect(Entry::url('/login'));
         }
         $menus = (new MenuService())->selectMenusByUserId(Auth::getUserId());
         $configService = new ConfigService();
@@ -45,7 +46,7 @@ class Index extends BaseController
      */
     public function main()
     {
-        return View::fetch('main', ['version' => '1.0.0-php']);
+        return View::fetch('main', ['version' => '1.2.0-php']);
     }
 
     /**
@@ -54,8 +55,8 @@ class Index extends BaseController
     public function home()
     {
         if (Auth::getLoginUser()) {
-            return redirect((string) url('/index'));
+            return redirect(Entry::url('/index'));
         }
-        return redirect((string) url('/login'));
+        return redirect(Entry::url('/login'));
     }
 }

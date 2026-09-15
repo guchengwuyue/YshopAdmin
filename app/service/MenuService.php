@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\service;
 
 use app\common\Auth;
+use app\common\Entry;
 use app\common\PageHelper;
 use app\common\TreeUtils;
 use think\facade\Db;
@@ -40,7 +41,31 @@ class MenuService
                 ->select()
                 ->toArray();
         }
-        return TreeUtils::buildMenuTree($menus);
+        return $this->prefixAdminMenuUrls(TreeUtils::buildMenuTree($menus));
+    }
+
+    /**
+     * Prefix relative admin menu URLs with /yshopadmin for dual-entry.
+     *
+     * @param array<int, array<string, mixed>> $menus
+     * @return array<int, array<string, mixed>>
+     */
+    protected function prefixAdminMenuUrls(array $menus): array
+    {
+        $root = Entry::adminRoot();
+        foreach ($menus as &$menu) {
+            $url = (string) ($menu['url'] ?? '');
+            if ($url !== '' && $url !== '#' && !preg_match('#^(https?:)?//#i', $url) && str_starts_with($url, '/')) {
+                if (!str_starts_with($url, $root . '/') && $url !== $root) {
+                    $menu['url'] = $root . $url;
+                }
+            }
+            if (!empty($menu['children']) && is_array($menu['children'])) {
+                $menu['children'] = $this->prefixAdminMenuUrls($menu['children']);
+            }
+        }
+        unset($menu);
+        return $menus;
     }
 
     /**

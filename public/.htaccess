@@ -2,6 +2,11 @@
   Options +FollowSymlinks -Multiviews
   RewriteEngine On
 
+  # Admin entry: /yshopadmin → yshopadmin.php (PATH_INFO without prefix)
+  RewriteRule ^yshopadmin$ yshopadmin.php/ [QSA,PT,L]
+  RewriteRule ^yshopadmin/(.*)$ yshopadmin.php/$1 [QSA,PT,L]
+
+  # Front entry: everything else
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]

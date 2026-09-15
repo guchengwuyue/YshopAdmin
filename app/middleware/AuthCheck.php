@@ -5,6 +5,7 @@ namespace app\middleware;
 
 use app\common\AjaxResult;
 use app\common\Auth as AuthHelper;
+use app\common\Entry;
 use app\service\OnlineUserService;
 use think\facade\Session;
 use think\Request;
@@ -30,7 +31,7 @@ class AuthCheck
                 return AjaxResult::unauth('登录超时，请重新登录');
             }
 
-            $url = (string) url('/login');
+            $url = Entry::url('/login');
             $msg = '登录超时，请重新登录';
             // 页面/iframe：先提示，再顶层跳转登录页
             $html = '<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8">'

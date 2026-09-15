@@ -37,23 +37,39 @@ class Captcha extends BaseController
             Session::set('KAPTCHA_SESSION_KEY', $text);
         }
 
-        $width = 100;
-        $height = 38;
+        $width = 110;
+        $height = 36;
         $im = imagecreatetruecolor($width, $height);
         $bg = imagecolorallocate($im, 243, 251, 254);
         imagefilledrectangle($im, 0, 0, $width, $height, $bg);
-        for ($i = 0; $i < 5; $i++) {
-            $line = imagecolorallocate($im, random_int(100, 200), random_int(100, 200), random_int(100, 200));
+
+        for ($i = 0; $i < 6; $i++) {
+            $line = imagecolorallocate($im, random_int(120, 200), random_int(120, 200), random_int(120, 200));
             imageline($im, random_int(0, $width), random_int(0, $height), random_int(0, $width), random_int(0, $height), $line);
         }
-        $color = imagecolorallocate($im, random_int(10, 100), random_int(10, 100), random_int(10, 100));
-        imagestring($im, 5, 18, 10, $text, $color);
+        for ($i = 0; $i < 60; $i++) {
+            $dot = imagecolorallocate($im, random_int(100, 200), random_int(100, 200), random_int(100, 200));
+            imagesetpixel($im, random_int(0, $width - 1), random_int(0, $height - 1), $dot);
+        }
+
+        $len = strlen($text);
+        $step = (int) max(14, ($width - 16) / max(1, $len));
+        for ($i = 0; $i < $len; $i++) {
+            $color = imagecolorallocate($im, random_int(10, 90), random_int(80, 150), random_int(10, 90));
+            $x = 8 + $i * $step + random_int(-1, 1);
+            $y = random_int(8, 14);
+            imagestring($im, 5, $x, $y, $text[$i], $color);
+        }
 
         ob_start();
         imagepng($im);
         imagedestroy($im);
         $content = ob_get_clean();
 
-        return response($content, 200, ['Content-Type' => 'image/png']);
+        return response($content, 200, [
+            'Content-Type'  => 'image/png',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            'Pragma'        => 'no-cache',
+        ]);
     }
 }

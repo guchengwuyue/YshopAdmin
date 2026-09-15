@@ -11,8 +11,9 @@
 
 use think\App;
 
-// [ 应用入口文件 ]
+// [ Front entry ]
 
+define('YSHOP_ENTRY', 'front');
 
 require __DIR__ . '/../vendor/autoload.php';
 

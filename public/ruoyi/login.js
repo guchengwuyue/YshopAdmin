@@ -3,7 +3,7 @@ $(function() {
     validateKickout();
     validateRule();
     $('.imgcode').click(function() {
-        var url = ctx + "captcha/captchaImage?type=" + captchaType + "&s=" + Math.random();
+        var url = ctx + "captcha/captchaImage?type=" + captchaType + "&t=" + Math.random();
         $(".imgcode").attr("src", url);
     });
 });

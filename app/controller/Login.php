@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace app\controller;
 
 use app\common\Auth;
+use app\common\Entry;
 use app\service\LoginService;
 use think\facade\View;
 
@@ -18,7 +19,7 @@ class Login extends BaseController
     public function index()
     {
         if (Auth::getLoginUser()) {
-            return redirect((string) url('/index'));
+            return redirect(Entry::url('/index'));
         }
         return View::fetch('index', [
             'captchaEnabled' => true,
@@ -50,7 +51,7 @@ class Login extends BaseController
     public function logout()
     {
         (new LoginService())->logout();
-        return redirect((string) url('/login'));
+        return redirect(Entry::url('/login'));
     }
 
     /**

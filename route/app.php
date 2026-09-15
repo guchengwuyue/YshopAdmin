@@ -1,8 +1,10 @@
 <?php
+use app\common\Entry;
 use app\common\addon\AddonManager;
 use think\facade\Route;
 
-// 公开路由
+if (Entry::isAdmin()) {
+// 后台公开路由
 Route::get('/', 'Index/home');
 Route::get('login', 'Login/index');
 Route::post('login', 'Login/ajaxLogin');
@@ -218,6 +220,16 @@ Route::group(function () {
     \app\middleware\DemoMode::class,
 ]);
 
-// 已启用插件公开路由 + 静态资源
+} else {
+// 前台：验证码（会员注册/自定义表单等）+ 插件公开路由 + 静态资源
+Route::get('captcha/captchaImage', 'Captcha/captchaImage');
+// 误入前台的后台登录地址 → 后台入口（含 .html 后缀被剥离后的 login）
+Route::get('login', function () {
+    return redirect(\app\common\Entry::url('/login'));
+});
+Route::post('login', function () {
+    return redirect(\app\common\Entry::url('/login'));
+});
 AddonManager::instance()->mergePublicRoutes();
+}
 
