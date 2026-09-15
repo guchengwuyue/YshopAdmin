@@ -16,7 +16,7 @@
 - Session + 中间件鉴权，think-view 服务端渲染，部署依赖少（PHP + MySQL 即可）
 - 默认 file 缓存 / Session，不强制 Redis，轻量易扩展
 - 系统内置**插件管理**（`系统管理 → 插件管理`）：扫描 `addons/` 目录，支持安装 / 启用 / 禁用 / 卸载与本地 zip 安装，业务能力可按需扩展、互不影响。
-
+- 系统目前已有插件官网CMS内容管理系统、支付聚合、微信公众号管理、文件管理等，插件下载地址：https://www.yixiang.co/c/YshopAdminchajianxiazai.html
 
 ```
 如果对你有帮助，欢迎 Star 收藏，谢谢！
@@ -32,8 +32,9 @@
 
 ## 演示地址
 
-- 在线演示：https://cms.yixiang.co/
+- 在线演示：https://cms.yixiang.co/yshopadmin
 - 账号：`admin` / 密码：`admin123`
+- 官网cms演示地址：https://cms.yixiang.co/ （目前内置了两套模板主题，可以前台自行切换查看效果）
 
 ### 演示效果
 
