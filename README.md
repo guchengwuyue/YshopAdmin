@@ -34,7 +34,7 @@
 
 - 在线演示：https://cms.yixiang.co/yshopadmin
 - 账号：`admin` / 密码：`admin123`
-- 官网cms演示地址：https://cms.yixiang.co/ （目前内置了两套模板主题，可以前台自行切换查看效果）
+- 插件cms演示地址：https://cms.yixiang.co/ （目前内置了两套模板主题，可以前台自行切换查看效果）
 
 ### 演示效果
 
