@@ -46,20 +46,6 @@
 ![输入图片说明](docs/images/200.png)
 ![输入图片说明](docs/images/303.png)
 
-![首页](./docs/images/demo-home.png)
-
-![用户管理](./docs/images/demo-user.png)
-
-![菜单管理](./docs/images/demo-menu.png)
-
-![角色管理](./docs/images/demo-role.png)
-
-![定时任务](./docs/images/demo-job.png)
-
-![表单构建](./docs/images/demo-form.png)
-
-![代码生成](./docs/images/demo-codegen.png)
-![插件管理](./docs/9999.png)
 
 
 
