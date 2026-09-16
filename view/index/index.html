@@ -14,6 +14,7 @@
     <link href="/css/style.min.css" rel="stylesheet"/>
     <link href="/css/skins.css?v=20260904" rel="stylesheet"/>
     <link href="/ruoyi/css/ry-ui.css?v=1.0.0" rel="stylesheet"/>
+    <link href="/css/admin-theme.css?v=20260916b" rel="stylesheet"/>
 </head>
 <body class="fixed-sidebar full-height-layout gray-bg skin-purple theme-light" style="overflow: hidden">
 <div id="wrapper">
@@ -26,24 +27,6 @@
          </a>
         <div class="sidebar-collapse">
             <ul class="nav" id="side-menu">
-            	<li>
-            		<div class="user-panel">
-            			<a class="menuItem noactive" title="个人中心" href="{$Request.root}/system/user/profile">
-					        <div class="pull-left image">
-                                {if condition="!empty($user.avatar)"}
-                                <img src="{$user.avatar}" onerror="this.src='/img/profile.jpg'" class="img-circle" alt="User Image">
-                                {else/}
-                                <img src="/img/profile.jpg" class="img-circle" alt="User Image">
-                                {/if}
-					        </div>
-				        </a>
-				        <div class="pull-left info">
-				          <p>{$user.loginName}</p>
-				          <a href="javascript:;"><i class="fa fa-circle text-success"></i> 在线</a>
-				          <a href="{$Request.root}/logout" style="padding-left:5px;"><i class="fa fa-sign-out text-danger"></i> 注销</a>
-				        </div>
-				    </div>
-            	</li>
                 <li>
                     <a class="menuItem" href="{$Request.root}/system/main"><i class="fa fa-home"></i> <span class="nav-label">首页</span> </a>
                 </li>
@@ -91,7 +74,7 @@
         <div class="row border-bottom">
             <nav class="navbar navbar-static-top" role="navigation" style="margin-bottom: 0">
                 <div class="navbar-header">
-                    <a class="navbar-minimalize minimalize-styl-2" style="color:#FFF;" href="javascript:;" title="收起菜单">
+                    <a class="navbar-minimalize minimalize-styl-2" href="javascript:;" title="收起菜单">
                     	<i class="fa fa-bars"></i>
                     </a>
                 </div>
@@ -155,7 +138,7 @@ var mode = "history";
 var skin = storage.get("skin");
 var historyPath = storage.get("historyPath");
 (function () {
-    // 顶部紫色 + 左侧浅色菜单 + 紫色页签（对齐设计图）
+    // 浅色侧栏 + Dora 青绿主色由 admin-theme.css 覆盖
     var defaultSkin = "skin-purple|theme-light";
     skin = defaultSkin;
     storage.set("skin", skin);

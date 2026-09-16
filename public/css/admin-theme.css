@@ -1,0 +1,773 @@
+/**
+ * YshopAdmin Dora-style visual overlay
+ * Covers shell + inner pages without changing Bootstrap / RuoYi JS APIs.
+ */
+:root {
+    --ys-primary: #18a058;
+    --ys-primary-hover: #36ad6a;
+    --ys-primary-active: #0c7a43;
+    --ys-primary-soft: rgba(24, 160, 88, 0.12);
+    --ys-primary-soft-strong: rgba(24, 160, 88, 0.18);
+    --ys-info: #2080f0;
+    --ys-info-hover: #4098fc;
+    --ys-warning: #f0a020;
+    --ys-warning-hover: #fcb040;
+    --ys-danger: #d03050;
+    --ys-danger-hover: #de576d;
+    --ys-bg: #f5f7fa;
+    --ys-card: #ffffff;
+    --ys-border: #e5e7eb;
+    --ys-text: #333639;
+    --ys-text-secondary: #606266;
+    --ys-text-muted: #909399;
+    --ys-radius: 8px;
+    --ys-radius-sm: 4px;
+    --ys-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    --ys-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --ys-sidebar-width: 220px;
+    --ys-sidebar-mini: 70px;
+    --ys-topbar-height: 50px;
+    --ys-tabs-height: 40px;
+    --ys-footer-height: 30px;
+}
+
+/* ========== Shell: sidebar ========== */
+body.theme-light .navbar-static-side {
+    background-color: #fafbfc !important;
+    box-shadow: 1px 0 0 0 var(--ys-border);
+    border-right: none;
+}
+
+body.theme-light.skin-purple .logo,
+body.theme-light.skin-purple .logo:hover,
+nav .logo {
+    background: transparent !important;
+    color: var(--ys-text) !important;
+    border-bottom: 1px solid var(--ys-border);
+    height: var(--ys-topbar-height);
+    line-height: var(--ys-topbar-height);
+    padding: 0 16px;
+    font-size: 16px;
+    font-weight: 600;
+    list-style: none;
+}
+
+.logo-lg {
+    color: var(--ys-text);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+body.theme-light .navbar-default .nav > li > a {
+    color: var(--ys-text-secondary);
+    font-weight: 500;
+    border-radius: var(--ys-radius);
+    margin: 2px 10px;
+    padding: 10px 14px;
+}
+
+body.theme-light .navbar-default .nav > li > a:hover,
+body.theme-light .navbar-default .nav > li > a:focus,
+body.theme-light.skin-purple .navbar-default .nav > li > a:hover,
+body.theme-light.skin-purple .navbar-default .nav > li > a:focus {
+    background-color: var(--ys-primary-soft) !important;
+    color: var(--ys-primary) !important;
+}
+
+body.theme-light.skin-purple .navbar-default .nav > li.active > a,
+body.theme-light.skin-purple .navbar-default .nav > li.selected > a,
+body.theme-light.skin-purple .navbar-default .nav > li.selected > a:focus,
+body.theme-light .nav:not(.navbar-toolbar) > li.active,
+body.theme-light.skin-purple .nav:not(.navbar-toolbar) > li.active {
+    background: transparent !important;
+    border-left: none !important;
+    color: var(--ys-primary) !important;
+}
+
+body.theme-light.skin-purple .navbar-default .nav > li.active > a,
+body.theme-light.skin-purple .navbar-default .nav > li.selected > a {
+    background-color: var(--ys-primary-soft) !important;
+    color: var(--ys-primary) !important;
+    border-radius: var(--ys-radius);
+}
+
+body.theme-light .nav > li.active > a .fa,
+body.theme-light .nav > li.selected > a .fa {
+    color: var(--ys-primary);
+}
+
+.nav-second-level li a,
+.nav-third-level li a,
+.nav-four-level li a {
+    padding-left: 42px !important;
+    margin: 2px 10px;
+    border-radius: var(--ys-radius);
+}
+
+.nav-third-level li a {
+    padding-left: 54px !important;
+}
+
+.nav-four-level li a {
+    padding-left: 66px !important;
+}
+
+/* mini-navbar hover labels */
+.fixed-sidebar.theme-light.mini-navbar .nav li:hover > a > span.nav-label {
+    background-color: #fafbfc;
+    color: var(--ys-text);
+}
+
+.fixed-sidebar.theme-light.mini-navbar .nav li:hover > .nav-second-level {
+    background-color: #fafbfc;
+}
+
+/* ========== Shell: white topbar ========== */
+body.skin-purple #page-wrapper > .border-bottom .navbar,
+body.skin-purple .navbar.navbar-static-top,
+#page-wrapper > .row.border-bottom {
+    background: var(--ys-card) !important;
+    border-bottom: 1px solid var(--ys-border) !important;
+}
+
+body.skin-purple .navbar.navbar-static-top {
+    min-height: var(--ys-topbar-height);
+    background: var(--ys-card) !important;
+    box-shadow: none;
+}
+
+body.skin-purple .navbar .nav > li > a,
+body.skin-purple .navbar .nav > li > a:hover,
+body.skin-purple .navbar .nav > li > a:focus,
+body.skin-purple .navbar .nav .open > a,
+body.skin-purple .navbar .nav .open > a:hover,
+body.skin-purple .navbar .nav .open > a:focus,
+body.skin-purple .navbar .nav > .active > a,
+.nav.navbar-right > li > a,
+.nav.navbar-left > li > a {
+    color: var(--ys-text-secondary) !important;
+    background: transparent !important;
+}
+
+.nav.navbar-top-links.navbar-right > li > a:hover,
+.nav.navbar-top-links.navbar-right > li > a:focus {
+    background: var(--ys-bg) !important;
+    color: var(--ys-primary) !important;
+}
+
+.minimalize-styl-2 {
+    color: var(--ys-text-secondary) !important;
+    margin: 10px 5px 5px 15px;
+    border-radius: var(--ys-radius-sm);
+}
+
+.minimalize-styl-2:hover {
+    color: var(--ys-primary) !important;
+    background: var(--ys-primary-soft);
+}
+
+.navbar-top-links .user-menu .user-image {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.navbar-top-links .user-menu .dropdown-menu {
+    border: 1px solid var(--ys-border);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow-card);
+    min-width: 160px;
+    padding: 6px 0;
+}
+
+.navbar-top-links .user-menu .dropdown-menu > li > a {
+    color: var(--ys-text) !important;
+    padding: 8px 16px;
+}
+
+.navbar-top-links .user-menu .dropdown-menu > li > a:hover {
+    background: var(--ys-primary-soft) !important;
+    color: var(--ys-primary) !important;
+}
+
+/* ========== Shell: tabs (Element Tag style) ========== */
+.content-tabs {
+    background: var(--ys-card) !important;
+    border-bottom: 1px solid var(--ys-border);
+    height: var(--ys-tabs-height);
+    line-height: var(--ys-tabs-height);
+}
+
+.content-tabs .roll-nav,
+.content-tabs button,
+.content-tabs a.roll-nav {
+    background: var(--ys-card);
+    color: var(--ys-text-muted);
+    height: var(--ys-tabs-height);
+    border-color: var(--ys-border);
+}
+
+.content-tabs .roll-nav:hover,
+.content-tabs button:hover,
+a.roll-nav.tabReload:hover {
+    color: var(--ys-primary);
+    background: var(--ys-bg);
+}
+
+.page-tabs a {
+    color: var(--ys-text-secondary) !important;
+    padding: 0 12px !important;
+    min-width: 50px;
+    text-align: center;
+    line-height: 28px !important;
+    height: 28px;
+    border-radius: var(--ys-radius) !important;
+    margin: 6px 0 0 6px !important;
+    border: 1px solid var(--ys-border) !important;
+    background: var(--ys-bg) !important;
+}
+
+.page-tabs a i {
+    margin-left: 6px;
+    font-size: 12px;
+    color: var(--ys-text-muted);
+}
+
+.page-tabs a:hover {
+    color: var(--ys-primary) !important;
+    border-color: var(--ys-primary-soft-strong) !important;
+    background: var(--ys-primary-soft) !important;
+}
+
+.page-tabs a.active,
+.skin-purple .page-tabs a.active {
+    color: #fff !important;
+    background: var(--ys-primary) !important;
+    border: 1px solid var(--ys-primary) !important;
+}
+
+.page-tabs a.active i,
+.skin-purple .page-tabs a.active i {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.page-tabs a.active:hover,
+.page-tabs a.active:hover i {
+    color: #fff !important;
+    background: var(--ys-primary-hover) !important;
+}
+
+.page-tabs a.active i:hover {
+    background: transparent !important;
+    color: #fff !important;
+}
+
+/* ========== Shell: content area ========== */
+#page-wrapper.gray-bg,
+body.gray-bg,
+#page-wrapper {
+    background-color: var(--ys-bg) !important;
+}
+
+#content-main {
+    height: calc(100% - var(--ys-topbar-height) - var(--ys-tabs-height) - var(--ys-footer-height));
+    overflow: hidden;
+    background: var(--ys-bg);
+}
+
+.footer {
+    background: transparent;
+    border: none;
+    color: var(--ys-text-muted);
+    font-size: 12px;
+    height: var(--ys-footer-height);
+    line-height: var(--ys-footer-height);
+    padding: 0 16px;
+}
+
+/* ========== Inner pages: layout cards ========== */
+body.gray-bg {
+    background-color: var(--ys-bg) !important;
+}
+
+.container-div {
+    padding: 12px 16px 20px;
+}
+
+.search-collapse,
+.select-table {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow);
+    border: 1px solid var(--ys-border);
+    margin-top: 12px;
+    padding: 12px 16px 14px;
+}
+
+.select-table {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.btn-group-sm {
+    margin: 8px 0 0;
+}
+
+/* ========== Buttons (all Bootstrap variants) ========== */
+.btn,
+a.btn,
+button.btn {
+    border-radius: var(--ys-radius-sm) !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    font-weight: 500;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.btn-rounded {
+    border-radius: var(--ys-radius-sm) !important;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.btn-xs,
+.btn-group-xs > .btn {
+    border-radius: var(--ys-radius-sm) !important;
+    padding: 2px 8px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.btn-sm,
+.btn-group-sm > .btn {
+    border-radius: var(--ys-radius-sm) !important;
+}
+
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn,
+.btn.disabled:hover,
+.btn[disabled]:hover {
+    opacity: 0.45;
+    filter: grayscale(0.15);
+}
+
+/* primary / success ?? brand green */
+.btn-primary,
+.btn-success {
+    color: #fff !important;
+    background-color: var(--ys-primary) !important;
+    border-color: var(--ys-primary) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.open .dropdown-toggle.btn-primary,
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active,
+.btn-success.active,
+.open .dropdown-toggle.btn-success {
+    color: #fff !important;
+    background-color: var(--ys-primary-hover) !important;
+    border-color: var(--ys-primary-hover) !important;
+}
+
+.btn-primary:active:hover,
+.btn-primary.active:hover,
+.btn-success:active:hover,
+.btn-success.active:hover {
+    background-color: var(--ys-primary-active) !important;
+    border-color: var(--ys-primary-active) !important;
+}
+
+/* info */
+.btn-info {
+    color: #fff !important;
+    background-color: var(--ys-info) !important;
+    border-color: var(--ys-info) !important;
+}
+
+.btn-info:hover,
+.btn-info:focus,
+.btn-info:active,
+.btn-info.active,
+.open .dropdown-toggle.btn-info {
+    color: #fff !important;
+    background-color: var(--ys-info-hover) !important;
+    border-color: var(--ys-info-hover) !important;
+}
+
+/* warning ?? ???? / ???? */
+.btn-warning {
+    color: #fff !important;
+    background-color: var(--ys-warning) !important;
+    border-color: var(--ys-warning) !important;
+}
+
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-warning:active,
+.btn-warning.active,
+.open .dropdown-toggle.btn-warning {
+    color: #fff !important;
+    background-color: var(--ys-warning-hover) !important;
+    border-color: var(--ys-warning-hover) !important;
+}
+
+/* danger ?? ??? / ??? */
+.btn-danger {
+    color: #fff !important;
+    background-color: var(--ys-danger) !important;
+    border-color: var(--ys-danger) !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-danger:active,
+.btn-danger.active,
+.open .dropdown-toggle.btn-danger {
+    color: #fff !important;
+    background-color: var(--ys-danger-hover) !important;
+    border-color: var(--ys-danger-hover) !important;
+}
+
+/* default / white */
+.btn-default,
+.btn-white {
+    color: var(--ys-text) !important;
+    background-color: #fff !important;
+    border-color: var(--ys-border) !important;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active,
+.open .dropdown-toggle.btn-default,
+.btn-white:hover,
+.btn-white:focus,
+.btn-white:active {
+    color: var(--ys-primary) !important;
+    background-color: var(--ys-primary-soft) !important;
+    border-color: var(--ys-primary) !important;
+}
+
+/* outline */
+.btn-outline.btn-primary,
+.btn-outline.btn-success {
+    color: var(--ys-primary) !important;
+    background: transparent !important;
+    border-color: var(--ys-primary) !important;
+}
+
+.btn-outline.btn-primary:hover,
+.btn-outline.btn-success:hover {
+    color: #fff !important;
+    background: var(--ys-primary) !important;
+}
+
+.btn-outline.btn-info {
+    color: var(--ys-info) !important;
+    background: transparent !important;
+    border-color: var(--ys-info) !important;
+}
+
+.btn-outline.btn-info:hover {
+    color: #fff !important;
+    background: var(--ys-info) !important;
+}
+
+.btn-outline.btn-warning {
+    color: var(--ys-warning) !important;
+    background: transparent !important;
+    border-color: var(--ys-warning) !important;
+}
+
+.btn-outline.btn-warning:hover {
+    color: #fff !important;
+    background: var(--ys-warning) !important;
+}
+
+.btn-outline.btn-danger {
+    color: var(--ys-danger) !important;
+    background: transparent !important;
+    border-color: var(--ys-danger) !important;
+}
+
+.btn-outline.btn-danger:hover {
+    color: #fff !important;
+    background: var(--ys-danger) !important;
+}
+
+/* layer dialog confirm buttons */
+.layui-layer-btn .layui-layer-btn0 {
+    background-color: var(--ys-primary) !important;
+    border-color: var(--ys-primary) !important;
+    color: #fff !important;
+    border-radius: var(--ys-radius-sm) !important;
+}
+
+.layui-layer-btn a {
+    border-radius: var(--ys-radius-sm) !important;
+}
+
+/* status toggle */
+.toggle-switch.switch-solid input:checked ~ span,
+.switch-solid input:checked ~ span {
+    background-color: var(--ys-primary) !important;
+    border-color: var(--ys-primary) !important;
+}
+
+.toggle-switch input:checked ~ span:after {
+    background-color: #fff !important;
+    color: var(--ys-primary) !important;
+}
+
+/* ========== Tables ========== */
+.bootstrap-table .table,
+.fixed-table-container .table {
+    background: var(--ys-card);
+}
+
+.bootstrap-table .table > thead > tr > th,
+.fixed-table-container thead th,
+.table > thead > tr > th {
+    background: #fafafa !important;
+    color: var(--ys-text);
+    font-weight: 600;
+    border-bottom: 1px solid var(--ys-border) !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd),
+.bootstrap-table .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #fff !important;
+}
+
+.table-hover > tbody > tr:hover,
+.bootstrap-table .table-hover > tbody > tr:hover {
+    background-color: var(--ys-primary-soft) !important;
+}
+
+.fixed-table-pagination .pagination > .active > a,
+.fixed-table-pagination .pagination > .active > span,
+.pagination > .active > a,
+.pagination > .active > span {
+    background-color: var(--ys-primary) !important;
+    border-color: var(--ys-primary) !important;
+}
+
+.pagination > li > a,
+.pagination > li > span {
+    color: var(--ys-text-secondary);
+    border-radius: var(--ys-radius-sm);
+    margin: 0 2px;
+}
+
+.pagination > li > a:hover {
+    color: var(--ys-primary);
+    background: var(--ys-primary-soft);
+    border-color: var(--ys-border);
+}
+
+/* ========== Forms / ibox ========== */
+.ibox {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow);
+    border: 1px solid var(--ys-border);
+    margin-bottom: 16px;
+}
+
+.ibox-title {
+    border-color: var(--ys-border);
+    background: transparent;
+    border-radius: var(--ys-radius) var(--ys-radius) 0 0;
+    min-height: 44px;
+    padding: 12px 16px;
+}
+
+.ibox-title h5 {
+    color: var(--ys-text);
+    font-weight: 600;
+}
+
+.ibox-content {
+    border: none;
+    padding: 16px;
+    border-radius: 0 0 var(--ys-radius) var(--ys-radius);
+}
+
+.main-content {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow);
+    border: 1px solid var(--ys-border);
+    margin: 12px 16px;
+    padding: 16px 20px 20px;
+}
+
+body.white-bg .wrapper.wrapper-content {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow);
+    border: 1px solid var(--ys-border);
+    margin: 12px 16px;
+    padding: 16px 20px 8px;
+}
+
+body.white-bg {
+    background-color: var(--ys-bg) !important;
+}
+
+.form-header {
+    color: var(--ys-text);
+    border-bottom: 1px solid var(--ys-border);
+    font-weight: 600;
+}
+
+.form-control:focus {
+    border-color: var(--ys-primary) !important;
+    box-shadow: 0 0 0 2px var(--ys-primary-soft) !important;
+}
+
+.select-list li input:focus,
+.select-list li select:focus {
+    border-color: var(--ys-primary);
+}
+
+/* layout west tree panel */
+.box.box-main {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow);
+    border: 1px solid var(--ys-border);
+}
+
+.box-header {
+    border-bottom: 1px solid var(--ys-border);
+    color: var(--ys-text);
+}
+
+/* links */
+a {
+    color: var(--ys-primary);
+}
+
+a:hover,
+a:focus {
+    color: var(--ys-primary-hover);
+}
+
+/* checkbox / radio accent when possible */
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+    accent-color: var(--ys-primary);
+}
+
+/* ========== Dashboard ========== */
+.ys-dash {
+    padding: 16px 20px 24px;
+}
+
+.ys-dash-welcome {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow-card);
+    border: 1px solid var(--ys-border);
+    padding: 24px 28px;
+    margin-bottom: 16px;
+}
+
+.ys-dash-welcome h2 {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ys-text);
+}
+
+.ys-dash-welcome p {
+    margin: 0 0 8px;
+    color: var(--ys-text-secondary);
+    line-height: 1.6;
+}
+
+.ys-dash-welcome .ys-version {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--ys-primary-soft);
+    color: var(--ys-primary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.ys-dash-welcome .ys-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: #fff7e6;
+    color: #d48806;
+    font-size: 12px;
+}
+
+.ys-dash-actions {
+    margin-top: 16px;
+}
+
+.ys-dash-actions .btn {
+    margin-right: 8px;
+    margin-bottom: 6px;
+    border-radius: var(--ys-radius-sm);
+}
+
+.ys-dash-card {
+    background: var(--ys-card);
+    border-radius: var(--ys-radius);
+    box-shadow: var(--ys-shadow);
+    border: 1px solid var(--ys-border);
+    padding: 0;
+    margin-bottom: 16px;
+    height: calc(100% - 16px);
+}
+
+.ys-dash-card-title {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ys-border);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ys-text);
+    margin: 0;
+}
+
+.ys-dash-card-body {
+    padding: 16px 18px 18px;
+    color: var(--ys-text-secondary);
+}
+
+.ys-dash-card-body ol {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.ys-dash-card-body li,
+.ys-dash-card-body p {
+    margin-bottom: 8px;
+    line-height: 1.6;
+}
+
+.ys-dash-card-body a {
+    color: var(--ys-primary);
+}
+
+/* checkbox custom on lists if any */
+.text-navy,
+.text-success {
+    color: var(--ys-primary) !important;
+}
