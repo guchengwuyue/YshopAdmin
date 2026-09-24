@@ -333,6 +333,9 @@ class AddonManager
             throw new \RuntimeException('插件 uninstall() 返回失败');
         }
 
+        // 先跑插件 uninstall 钩子（可清动态表），再执行 uninstall.sql 删业务表
+        $this->runUninstallSql($name);
+
         $this->removeMenus($name);
         Db::name('sys_addon')->where('name', $name)->delete();
 
@@ -646,7 +649,23 @@ class AddonManager
      */
     public function runInstallSql(string $name): void
     {
-        $file = addon_path($name) . 'install.sql';
+        $this->runAddonSqlFile($name, 'install.sql');
+    }
+
+    /**
+     * 执行 uninstall.sql（卸载时删业务表，避免重装主键冲突）
+     */
+    public function runUninstallSql(string $name): void
+    {
+        $this->runAddonSqlFile($name, 'uninstall.sql');
+    }
+
+    /**
+     * 按分号拆分执行插件目录下 SQL 文件
+     */
+    protected function runAddonSqlFile(string $name, string $filename): void
+    {
+        $file = addon_path($name) . $filename;
         if (!is_file($file)) {
             return;
         }

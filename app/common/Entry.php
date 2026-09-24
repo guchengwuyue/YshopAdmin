@@ -50,4 +50,22 @@ class Entry
         }
         return self::ADMIN_ROOT . '/' . $path;
     }
+
+    /**
+     * Front/site URL root — never /yshopadmin.
+     * Public addon paths (/addons/...) and payment callbacks use this origin.
+     * e.g. publicRoot(true) => http://example.com
+     */
+    public static function publicRoot(bool $complete = false): string
+    {
+        try {
+            $req = request();
+        } catch (\Throwable) {
+            return '';
+        }
+        if (self::isAdmin()) {
+            return $complete ? rtrim((string) $req->domain(), '/') : '';
+        }
+        return $req->root($complete);
+    }
 }

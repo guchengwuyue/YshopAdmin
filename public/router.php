@@ -14,13 +14,27 @@
 
 $uri = urldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
 
-// Serve existing static files as-is
+// Serve existing static files / directory indexes as-is
+// (e.g. /doc/ → doc/index.html; /yshopadmin/ → yshopadmin/index.html 落地页优先于下方网关)
 $file = $_SERVER['DOCUMENT_ROOT'] . $uri;
-if ($uri !== '/' && is_file($file)) {
-    return false;
+if ($uri !== '/') {
+    if (is_file($file)) {
+        return false;
+    }
+    // Directory request: prefer index.html (Docsify / 落地页), then let PHP built-in server try default indexes
+    $dir = rtrim($file, '/\\');
+    if (is_dir($dir)) {
+        if (is_file($dir . DIRECTORY_SEPARATOR . 'index.html')) {
+            header('Content-Type: text/html; charset=utf-8');
+            readfile($dir . DIRECTORY_SEPARATOR . 'index.html');
+            return true;
+        }
+        return false;
+    }
 }
 
-// Admin: /yshopadmin → yshopadmin.php with PATH_INFO without prefix
+// Admin API gateway: only when no static file/dir matched above
+// /yshopadmin/api/* → yshopadmin.php (落地页目录下勿建 api/ 子路径以免遮蔽)
 if ($uri === '/yshopadmin' || str_starts_with($uri, '/yshopadmin/')) {
     $pathInfo = $uri === '/yshopadmin' ? '/' : substr($uri, strlen('/yshopadmin'));
     $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/yshopadmin.php';

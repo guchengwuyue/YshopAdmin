@@ -9,10 +9,14 @@ use think\facade\Db;
 
 /**
  * 代码生成（导入表元数据、预览 / 打包 PHP CRUD 骨架）
+ * 产出对齐当前架构：api Controller + Service + admin-ui Vue/API + 路由片段
  * java_type / java_field 列存 PHP 类型 / 驼峰字段（表结构不变）
  */
 class GenService
 {
+    /** 超级列：不参与业务表单 */
+    private const SUPER_COLUMNS = ['create_by', 'create_time', 'update_by', 'update_time'];
+
     /**
      * 查询已导入生成表列表
      * @param array $params 筛选条件（tableName / tableComment）
@@ -143,7 +147,11 @@ class GenService
             $nullable = strtoupper((string) ($col['IS_NULLABLE'] ?? $col['is_nullable'] ?? 'YES')) === 'NO' ? '1' : '0';
             $phpType = $this->mapPhpType((string) $columnType);
             $javaField = PageHelper::toCamel((string) $columnName);
-            $super = in_array($columnName, ['create_by', 'create_time', 'update_by', 'update_time', 'remark'], true);
+            $super = in_array($columnName, self::SUPER_COLUMNS, true);
+            $isDelFlag = $columnName === 'del_flag';
+            $htmlType = $this->mapHtmlType((string) $columnType, (string) $columnName);
+            $queryType = $this->defaultQueryType((string) $columnName, $htmlType);
+            $isQuery = $this->defaultIsQuery((string) $columnName, $isPk === '1', $super || $isDelFlag) ? '1' : '0';
 
             Db::name('gen_table_column')->insert([
                 'table_id'       => $tableId,
@@ -154,13 +162,13 @@ class GenService
                 'java_field'     => $javaField,
                 'is_pk'          => $isPk,
                 'is_increment'   => $isInc,
-                'is_required'    => $isPk === '1' ? '0' : $nullable,
-                'is_insert'      => ($isPk === '1' && $isInc === '1') || $super ? '0' : '1',
-                'is_edit'        => $isPk === '1' || $super ? '0' : '1',
-                'is_list'        => $super && $columnName !== 'remark' ? '0' : '1',
-                'is_query'       => '0',
-                'query_type'     => 'EQ',
-                'html_type'      => $this->mapHtmlType((string) $columnType, (string) $columnName),
+                'is_required'    => $isPk === '1' || $isDelFlag ? '0' : $nullable,
+                'is_insert'      => ($isPk === '1' && $isInc === '1') || $super || $isDelFlag ? '0' : '1',
+                'is_edit'        => $isPk === '1' || $super || $isDelFlag ? '0' : '1',
+                'is_list'        => ($super && $columnName !== 'remark') || $isDelFlag ? '0' : '1',
+                'is_query'       => $isQuery,
+                'query_type'     => $queryType,
+                'html_type'      => $htmlType,
                 'dict_type'      => '',
                 'sort'           => $sort++,
                 'create_by'      => Auth::getLoginName(),
@@ -248,7 +256,7 @@ class GenService
     /**
      * 打包下载生成代码
      * @param string $tableIds 表 ID，逗号分隔
-     * @return string 临时文件名
+     * @return string 压缩文件名
      */
     public function downloadZip(string $tableIds): string
     {
@@ -277,7 +285,7 @@ class GenService
     }
 
     /**
-     * 渲染单表全部生成文件
+     * 渲染单表全部生成文件（对齐 api + admin-ui 架构）
      * @param array $table 表配置（含 columns）
      */
     protected function renderFiles(array $table): array
@@ -289,287 +297,595 @@ class GenService
         $columns = $table['columns'] ?? [];
         $pk = 'id';
         $pkField = 'id';
+        $hasDelFlag = false;
+        $hasCreateBy = false;
+        $hasRemark = false;
         foreach ($columns as $c) {
+            $cn = $c['columnName'] ?? '';
             if (($c['isPk'] ?? '') === '1') {
-                $pk = $c['columnName'];
-                $pkField = $c['javaField'];
-                break;
+                $pk = $cn;
+                $pkField = $c['javaField'] ?? PageHelper::toCamel($cn);
+            }
+            if ($cn === 'del_flag') {
+                $hasDelFlag = true;
+            }
+            if ($cn === 'create_by') {
+                $hasCreateBy = true;
+            }
+            if ($cn === 'remark') {
+                $hasRemark = true;
             }
         }
-        $listCols = array_filter($columns, static fn($c) => ($c['isList'] ?? '') === '1');
-        $queryCols = array_filter($columns, static fn($c) => ($c['isQuery'] ?? '') === '1');
-        $insertCols = array_filter($columns, static fn($c) => ($c['isInsert'] ?? '') === '1');
-        $editCols = array_filter($columns, static fn($c) => ($c['isEdit'] ?? '') === '1');
+        $listCols = array_values(array_filter($columns, static fn($c) => ($c['isList'] ?? '') === '1'));
+        $queryCols = array_values(array_filter($columns, static fn($c) => ($c['isQuery'] ?? '') === '1'));
+        $insertCols = array_values(array_filter($columns, static fn($c) => ($c['isInsert'] ?? '') === '1'));
+        $editCols = array_values(array_filter($columns, static fn($c) => ($c['isEdit'] ?? '') === '1'));
+        $formCols = [];
+        $seen = [];
+        foreach (array_merge($insertCols, $editCols) as $col) {
+            $f = $col['javaField'] ?? '';
+            if ($f === '' || isset($seen[$f])) {
+                continue;
+            }
+            $seen[$f] = true;
+            $formCols[] = $col;
+        }
 
-        $vars = compact('module', 'business', 'className', 'functionName', 'columns', 'pk', 'pkField', 'listCols', 'queryCols', 'insertCols', 'editCols', 'table');
+        $vars = compact(
+            'module', 'business', 'className', 'functionName', 'columns',
+            'pk', 'pkField', 'listCols', 'queryCols', 'insertCols', 'editCols', 'formCols',
+            'table', 'hasDelFlag', 'hasCreateBy', 'hasRemark'
+        );
+        $vars['serviceVar'] = lcfirst($className) . 'Service';
+        $vars['perm'] = "{$module}:{$business}";
 
         return [
-            "app/controller/{$module}/{$className}.php" => $this->tplController($vars),
-            "app/service/{$className}Service.php"       => $this->tplService($vars),
-            "view/{$module}/{$business}/{$business}.html" => $this->tplList($vars),
-            "view/{$module}/{$business}/add.html"       => $this->tplForm($vars, false),
-            "view/{$module}/{$business}/edit.html"      => $this->tplForm($vars, true),
+            "app/controller/api/{$module}/{$className}.php"           => $this->tplController($vars),
+            "app/service/{$className}Service.php"                     => $this->tplService($vars),
+            "admin-ui/src/api/{$module}/{$business}.js"                => $this->tplApiJs($vars),
+            "admin-ui/src/views/{$module}/{$business}/index.vue"       => $this->tplVue($vars),
+            "docs/gen/{$module}_{$business}_route.php.txt"            => $this->tplRoute($vars),
+            "docs/gen/{$module}_{$business}_menu.sql.txt"             => $this->tplMenuSql($vars),
         ];
     }
 
     /**
-     * 生成控制器模板
+     * 生成 api Controller
      */
     protected function tplController(array $v): string
     {
         $m = $v['module'];
         $c = $v['className'];
-        $b = $v['business'];
-        $pk = $v['pkField'];
+        $fn = $v['functionName'];
+        $sv = $v['serviceVar'];
         return <<<PHP
 <?php
 declare(strict_types=1);
 
-namespace app\\controller\\{$m};
+namespace app\\controller\\api\\{$m};
 
 use app\\controller\\BaseController;
 use app\\service\\{$c}Service;
-use think\\facade\\View;
 
+/**
+ * {$fn} JSON API
+ */
 class {$c} extends BaseController
 {
-    protected {$c}Service \$service;
+    protected {$c}Service \${$sv};
 
     protected function initialize()
     {
-        \$this->service = new {$c}Service();
-    }
-
-    public function index()
-    {
-        return View::fetch('{$b}/{$b}');
+        \$this->{$sv} = new {$c}Service();
     }
 
     public function list()
     {
-        [\$rows, \$total] = \$this->service->selectList(\$this->request->param());
+        [\$rows, \$total] = \$this->{$sv}->selectList(\$this->request->param());
         return \$this->getDataTable(\$rows, \$total);
+    }
+
+    public function get(\$id = 0)
+    {
+        \$row = \$this->{$sv}->get((int) (\$id ?: \$this->request->param('id', 0)));
+        if (!\$row) {
+            return \$this->error('{$fn}不存在');
+        }
+        return \$this->success('success', \$row);
     }
 
     public function add()
     {
-        if (\$this->request->isPost()) {
-            return \$this->toAjax(\$this->service->insert(\$this->request->post()) > 0 ? 1 : 0);
+        try {
+            \$id = \$this->{$sv}->insert(\$this->request->param());
+            return \$this->toAjax(\$id > 0 ? 1 : 0);
+        } catch (\\Throwable \$e) {
+            return \$this->error(\$e->getMessage());
         }
-        return View::fetch('{$b}/add');
     }
 
-    public function edit(\$id = 0)
+    public function edit()
     {
-        if (\$this->request->isPost()) {
-            return \$this->toAjax(\$this->service->update(\$this->request->post()));
+        try {
+            return \$this->toAjax(\$this->{$sv}->update(\$this->request->param()));
+        } catch (\\Throwable \$e) {
+            return \$this->error(\$e->getMessage());
         }
-        return View::fetch('{$b}/edit', ['row' => \$this->service->get((int) \$id)]);
     }
 
     public function remove()
     {
-        return \$this->toAjax(\$this->service->delete((string) \$this->request->post('ids', '')));
+        try {
+            return \$this->toAjax(\$this->{$sv}->delete((string) \$this->request->param('ids', '')));
+        } catch (\\Throwable \$e) {
+            return \$this->error(\$e->getMessage());
+        }
     }
 }
 PHP;
     }
 
     /**
-     * 生成 Service 模板
+     * 生成 Service
      */
     protected function tplService(array $v): string
     {
         $c = $v['className'];
+        $fn = $v['functionName'];
         $tableName = $v['table']['tableName'];
         $pk = $v['pk'];
+        $hasDelFlag = $v['hasDelFlag'];
+        $hasCreateBy = $v['hasCreateBy'];
+
         $queryBlocks = '';
+        if ($hasDelFlag) {
+            $queryBlocks .= "        \$query = Db::name('{$tableName}')->where('del_flag', '0');\n";
+        } else {
+            $queryBlocks .= "        \$query = Db::name('{$tableName}');\n";
+        }
         foreach ($v['queryCols'] as $col) {
             $field = $col['javaField'];
             $colName = $col['columnName'];
+            $qt = strtoupper((string) ($col['queryType'] ?? 'EQ'));
             $queryBlocks .= "        \${$field} = \$params['{$field}'] ?? \$params['{$colName}'] ?? '';\n";
-            $queryBlocks .= "        if (\${$field} !== '') {\n            \$query->whereLike('{$colName}', '%' . \${$field} . '%');\n        }\n";
+            if ($qt === 'LIKE') {
+                $queryBlocks .= "        if (\${$field} !== '' && \${$field} !== null) {\n            \$query->whereLike('{$colName}', '%' . \${$field} . '%');\n        }\n";
+            } else {
+                $queryBlocks .= "        if (\${$field} !== '' && \${$field} !== null) {\n            \$query->where('{$colName}', \${$field});\n        }\n";
+            }
         }
+
         $insertFields = '';
         foreach ($v['insertCols'] as $col) {
             $cn = $col['columnName'];
-            $insertFields .= "            '{$cn}' => \$data['{$cn}'] ?? '',\n";
+            $default = $this->phpDefaultExpr($col);
+            $insertFields .= "            '{$cn}' => \$data['{$cn}'] ?? {$default},\n";
         }
+        if ($hasDelFlag) {
+            $insertFields .= "            'del_flag'    => '0',\n";
+        }
+        if ($hasCreateBy) {
+            $insertFields .= "            'create_by'   => Auth::getLoginName(),\n";
+            $insertFields .= "            'create_time' => date('Y-m-d H:i:s'),\n";
+        }
+
         $updateFields = '';
         foreach ($v['editCols'] as $col) {
             $cn = $col['columnName'];
-            $updateFields .= "            '{$cn}' => \$data['{$cn}'] ?? '',\n";
+            $default = $this->phpDefaultExpr($col);
+            $updateFields .= "            '{$cn}' => \$data['{$cn}'] ?? {$default},\n";
         }
+        if ($hasCreateBy) {
+            $updateFields .= "            'update_by'   => Auth::getLoginName(),\n";
+            $updateFields .= "            'update_time' => date('Y-m-d H:i:s'),\n";
+        }
+
+        if ($hasDelFlag) {
+            $softFields = "            'del_flag' => '2',\n";
+            if ($hasCreateBy) {
+                $softFields .= "            'update_by'   => Auth::getLoginName(),\n";
+                $softFields .= "            'update_time' => date('Y-m-d H:i:s'),\n";
+            }
+            $deleteBody = <<<PHP
+        \$idArr = array_filter(array_map('intval', explode(',', \$ids)));
+        if (!\$idArr) {
+            return 0;
+        }
+        return Db::name('{$tableName}')->whereIn('{$pk}', \$idArr)->where('del_flag', '0')->update([
+{$softFields}        ]);
+PHP;
+            $getWhere = "->where('{$pk}', \$id)->where('del_flag', '0')";
+        } else {
+            $deleteBody = <<<PHP
+        \$idArr = array_filter(array_map('intval', explode(',', \$ids)));
+        if (!\$idArr) {
+            return 0;
+        }
+        return Db::name('{$tableName}')->whereIn('{$pk}', \$idArr)->delete();
+PHP;
+            $getWhere = "->where('{$pk}', \$id)";
+        }
+
+        $authUse = ($hasCreateBy || $hasDelFlag) ? "use app\\common\\Auth;\n" : '';
+
         return <<<PHP
 <?php
 declare(strict_types=1);
 
 namespace app\\service;
 
-use app\\common\\Auth;
-use app\\common\\PageHelper;
+{$authUse}use app\\common\\PageHelper;
 use think\\facade\\Db;
 
+/**
+ * {$fn}
+ */
 class {$c}Service
 {
+    /**
+     * 查询列表
+     * @param array \$params 筛选条件
+     */
     public function selectList(array \$params = []): array
     {
         PageHelper::startPage();
-        \$query = Db::name('{$tableName}');
 {$queryBlocks}        [\$rows, \$total] = PageHelper::paginate(\$query);
         return [PageHelper::camelRows(\$rows), \$total];
     }
 
+    /**
+     * 根据主键查询详情
+     */
     public function get(int \$id): ?array
     {
-        \$row = Db::name('{$tableName}')->where('{$pk}', \$id)->find();
+        \$row = Db::name('{$tableName}'){$getWhere}->find();
         return \$row ? PageHelper::camelKeys(\$row) : null;
     }
 
+    /**
+     * 新增
+     */
     public function insert(array \$data): int
     {
         \$data = PageHelper::snakeParams(\$data);
         \$row = [
-{$insertFields}            'create_by'   => Auth::getLoginName(),
-            'create_time' => date('Y-m-d H:i:s'),
-        ];
+{$insertFields}        ];
         return (int) Db::name('{$tableName}')->insertGetId(\$row);
     }
 
+    /**
+     * 修改
+     */
     public function update(array \$data): int
     {
         \$data = PageHelper::snakeParams(\$data);
         \$id = (int) (\$data['{$pk}'] ?? 0);
         return Db::name('{$tableName}')->where('{$pk}', \$id)->update([
-{$updateFields}            'update_by'   => Auth::getLoginName(),
-            'update_time' => date('Y-m-d H:i:s'),
-        ]);
+{$updateFields}        ]);
     }
 
+    /**
+     * 删除
+     * @param string \$ids 主键，逗号分隔
+     */
     public function delete(string \$ids): int
     {
-        \$idArr = array_filter(array_map('intval', explode(',', \$ids)));
-        if (!\$idArr) {
-            return 0;
-        }
-        return Db::name('{$tableName}')->whereIn('{$pk}', \$idArr)->delete();
+{$deleteBody}
     }
 }
 PHP;
     }
 
     /**
-     * 生成列表页模板
+     * 生成前端 API 模块
      */
-    protected function tplList(array $v): string
+    protected function tplApiJs(array $v): string
     {
-        $b = $v['business'];
         $m = $v['module'];
-        $fn = $v['functionName'];
-        $pkField = $v['pkField'];
-        $search = '';
-        foreach ($v['queryCols'] as $col) {
-            $search .= '<li>' . htmlspecialchars((string) ($col['columnComment'] ?: $col['javaField'])) . '??<input type="text" name="' . $col['javaField'] . '"/></li>' . "\n";
-        }
-        $colsJs = '';
-        foreach ($v['listCols'] as $col) {
-            $colsJs .= "      {field:'{$col['javaField']}', title:'" . addslashes((string) ($col['columnComment'] ?: $col['javaField'])) . "'},\n";
-        }
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="zh">
-<head>{include file="/common/header" title="{$fn}" /}</head>
-<body class="gray-bg">
-<div class="container-div"><div class="row">
-<div class="col-sm-12 search-collapse">
-<form id="formId"><div class="select-list"><ul>
-{$search}<li><a class="btn btn-primary btn-rounded btn-sm" onclick="\$.table.search()"><i class="fa fa-search"></i>&nbsp;????</a>
-<a class="btn btn-warning btn-rounded btn-sm" onclick="\$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;????</a></li>
-</ul></div></form>
-</div>
-<div class="btn-group-sm" id="toolbar">
-<a class="btn btn-success" onclick="\$.operate.add()"><i class="fa fa-plus"></i> ????</a>
-<a class="btn btn-primary single disabled" onclick="\$.operate.edit()"><i class="fa fa-edit"></i> ???</a>
-<a class="btn btn-danger multiple disabled" onclick="\$.operate.removeAll()"><i class="fa fa-remove"></i> ???</a>
-</div>
-<div class="col-sm-12 select-table table-striped"><table id="bootstrap-table"></table></div>
-</div></div>
-{include file="/common/footer" /}
-<script>
-var prefix = ctx + "{$m}/{$b}";
-\$(function(){
-  \$.table.init({
-    uniqueId: "{$pkField}",
-    url: prefix + "/list",
-    createUrl: prefix + "/add",
-    updateUrl: prefix + "/edit/{id}",
-    removeUrl: prefix + "/remove",
-    modalName: "{$fn}",
-    columns: [
-      {checkbox:true},
-{$colsJs}      {title:'????', formatter:function(v,row){
-        return '<a class="btn btn-success btn-xs" onclick="\$.operate.edit(\\''+row.{$pkField}+'\\')"><i class="fa fa-edit"></i>??</a> '+
-               '<a class="btn btn-danger btn-xs" onclick="\$.operate.remove(\\''+row.{$pkField}+'\\')"><i class="fa fa-remove"></i>???</a>';
-      }}
-    ]
-  });
-});
-</script>
-</body></html>
-HTML;
-    }
+        $b = $v['business'];
+        $c = $v['className'];
+        return <<<JS
+import request from '@/utils/request'
 
-    /**
-     * 生成新增/编辑表单模板
-     * @param bool $edit 是否编辑页
-     */
-    protected function tplForm(array $v, bool $edit): string
-    {
-        $cols = $edit ? $v['editCols'] : $v['insertCols'];
-        $fn = $v['functionName'];
-        $pkField = $v['pkField'];
-        $biz = $v['business'];
-        $mod = $v['module'];
-        $action = $edit ? 'edit' : 'add';
-        $fields = '';
-        if ($edit) {
-            $fields = '<input type="hidden" name="' . $pkField . '" value="{$row.' . $pkField . '|default=\'\'}">' . "\n";
-        }
-        foreach ($cols as $col) {
-            $label = htmlspecialchars((string) ($col['columnComment'] ?: $col['javaField']));
-            $name = $col['javaField'];
-            $val = $edit ? '{$row.' . $name . '|default=\'\'}' : '';
-            $fields .= "<div class=\"form-group\">\n"
-                . "  <label class=\"col-sm-3 control-label\">{$label}：</label>\n"
-                . "  <div class=\"col-sm-8\">\n"
-                . "    <input class=\"form-control\" name=\"{$name}\" value=\"{$val}\">\n"
-                . "  </div>\n"
-                . "</div>\n";
-        }
-        $title = ($edit ? '修改' : '新增') . $fn;
-        return <<<HTML
-<!DOCTYPE html>
-<html lang="zh">
-<head>{include file="/common/header" title="{$title}" /}</head>
-<body class="white-bg">
-<div class="wrapper wrapper-content animated fadeInRight ibox-content">
-<form class="form-horizontal m" id="form-{$biz}-{$action}">
-{$fields}</form>
-</div>
-{include file="/common/footer" /}
-<script>
-var prefix = ctx + "{$mod}/{$biz}";
-\$("#form-{$biz}-{$action}").validate({focusCleanup:true});
-function submitHandler(){
-  if(\$.validate.form()){ \$.operate.save(prefix+"/{$action}", \$('#form-{$biz}-{$action}').serialize()); }
+export function list{$c}(params) {
+  return request({ url: '/api/{$m}/{$b}/list', method: 'get', params })
 }
-</script>
-</body></html>
-HTML;
+
+export function get{$c}(id) {
+  return request({ url: '/api/{$m}/{$b}/get/' + id, method: 'get' })
+}
+
+export function add{$c}(data) {
+  return request({ url: '/api/{$m}/{$b}/add', method: 'post', data })
+}
+
+export function update{$c}(data) {
+  return request({ url: '/api/{$m}/{$b}/edit', method: 'post', data })
+}
+
+export function remove{$c}(ids) {
+  return request({ url: '/api/{$m}/{$b}/remove', method: 'post', data: { ids } })
+}
+JS;
     }
 
     /**
-     * 表名转业务名
+     * 生成 admin-ui Vue 页面
+     */
+    protected function tplVue(array $v): string
+    {
+        $m = $v['module'];
+        $b = $v['business'];
+        $c = $v['className'];
+        $fn = $v['functionName'];
+        $pkField = $v['pkField'];
+        $perm = $v['perm'];
+
+        $searchItems = '';
+        $queryDefaults = "pageNum: 1, pageSize: 10";
+        $resetLines = '';
+        foreach ($v['queryCols'] as $col) {
+            $label = $this->esc((string) ($col['columnComment'] ?: $col['javaField']));
+            $field = $col['javaField'];
+            $htmlType = $col['htmlType'] ?? 'input';
+            $queryDefaults .= ", {$field}: " . ($htmlType === 'select' || $htmlType === 'radio' ? 'undefined' : "''");
+            $resetLines .= "  query.{$field} = " . ($htmlType === 'select' || $htmlType === 'radio' ? 'undefined' : "''") . "\n";
+            if ($htmlType === 'select' || $htmlType === 'radio') {
+                $searchItems .= "      <a-form-item label=\"{$label}\">\n        <a-select v-model:value=\"query.{$field}\" allow-clear style=\"width: 120px\" :options=\"[]\" placeholder=\"请选择\" />\n      </a-form-item>\n";
+            } else {
+                $searchItems .= "      <a-form-item label=\"{$label}\">\n        <a-input v-model:value=\"query.{$field}\" allow-clear />\n      </a-form-item>\n";
+            }
+        }
+
+        $columnsJs = '';
+        foreach ($v['listCols'] as $col) {
+            $title = $this->esc((string) ($col['columnComment'] ?: $col['javaField']));
+            $field = $col['javaField'];
+            $width = '';
+            if (($col['isPk'] ?? '') === '1' || in_array($field, ['status', 'sort', 'orderNum'], true)) {
+                $width = ', width: 100';
+            } elseif ($field === 'createTime' || $field === 'updateTime') {
+                $width = ', width: 170';
+            }
+            $columnsJs .= "  { title: '{$title}', dataIndex: '{$field}'{$width} },\n";
+        }
+        $columnsJs .= "  { title: '操作', key: 'action', width: 140 },\n";
+
+        $formItems = '';
+        $emptyFields = "{$pkField}: undefined";
+        $requiredChecks = [];
+        foreach ($v['formCols'] as $col) {
+            $label = $this->esc((string) ($col['columnComment'] ?: $col['javaField']));
+            $field = $col['javaField'];
+            $htmlType = $col['htmlType'] ?? 'input';
+            $required = ($col['isRequired'] ?? '') === '1';
+            $reqAttr = $required ? ' required' : '';
+            $emptyFields .= ', ' . $field . ': ' . $this->jsDefaultExpr($col);
+            if ($required) {
+                $requiredChecks[] = "!form.{$field}";
+            }
+            $formItems .= match ($htmlType) {
+                'textarea' => "        <a-form-item label=\"{$label}\"{$reqAttr}><a-textarea v-model:value=\"form.{$field}\" :rows=\"2\" /></a-form-item>\n",
+                'select' => "        <a-form-item label=\"{$label}\"{$reqAttr}><a-select v-model:value=\"form.{$field}\" allow-clear :options=\"[]\" placeholder=\"请选择\" /></a-form-item>\n",
+                'radio' => "        <a-form-item label=\"{$label}\"{$reqAttr}><a-radio-group v-model:value=\"form.{$field}\" :options=\"[]\" /></a-form-item>\n",
+                'datetime' => "        <a-form-item label=\"{$label}\"{$reqAttr}><a-input v-model:value=\"form.{$field}\" placeholder=\"YYYY-MM-DD HH:mm:ss\" /></a-form-item>\n",
+                default => (($col['javaType'] ?? '') === 'int' || ($col['javaType'] ?? '') === 'float')
+                    ? "        <a-form-item label=\"{$label}\"{$reqAttr}><a-input-number v-model:value=\"form.{$field}\" style=\"width: 100%\" /></a-form-item>\n"
+                    : "        <a-form-item label=\"{$label}\"{$reqAttr}><a-input v-model:value=\"form.{$field}\" /></a-form-item>\n",
+            };
+        }
+
+        $requiredJs = $requiredChecks
+            ? "  if (" . implode(' || ', $requiredChecks) . ") {\n    message.warning('请填写必填项')\n    return\n  }\n"
+            : '';
+
+        $assignEdit = '';
+        foreach ($v['formCols'] as $col) {
+            $field = $col['javaField'];
+            $jt = $col['javaType'] ?? 'string';
+            if (($col['isPk'] ?? '') === '1') {
+                continue;
+            }
+            if ($jt === 'int' || $jt === 'float') {
+                $assignEdit .= "    {$field}: Number(row.{$field} || 0),\n";
+            } else {
+                $assignEdit .= "    {$field}: row.{$field} ?? '',\n";
+            }
+        }
+
+        return <<<VUE
+<template>
+  <div class="page-stack">
+    <div class="page-card">
+    <a-form layout="inline" :model="query" class="search">
+{$searchItems}      <a-form-item>
+        <a-button type="primary" @click="search">搜索</a-button>
+        <a-button style="margin-left: 8px" @click="resetQuery">重置</a-button>
+      </a-form-item>
+    </a-form>
+    </div>
+    <div class="page-card">
+    <div class="toolbar">
+      <a-space>
+        <a-button v-if="can('{$perm}:add')" type="primary" @click="openAdd">新增</a-button>
+        <a-button v-if="can('{$perm}:remove')" danger :disabled="!selected.length" @click="onRemove()">删除</a-button>
+      </a-space>
+    </div>
+    <a-table
+      row-key="{$pkField}"
+      :columns="columns"
+      :data-source="rows"
+      :loading="loading"
+      :pagination="pagination"
+      :row-selection="{ selectedRowKeys: selected, onChange: (keys) => (selected = keys) }"
+      @change="onTableChange"
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'action'">
+          <a-space>
+            <a v-if="can('{$perm}:edit')" @click="openEdit(record)">编辑</a>
+            <a v-if="can('{$perm}:remove')" @click="onRemove(record)">删除</a>
+          </a-space>
+        </template>
+      </template>
+    </a-table>
+
+    <a-modal v-model:open="open" :title="form.{$pkField} ? '编辑{$fn}' : '新增{$fn}'" :confirm-loading="saving" @ok="submit">
+      <a-form :model="form" :label-col="{ span: 6 }" :wrapper-col="{ span: 16 }">
+{$formItems}      </a-form>
+    </a-modal>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, reactive, ref } from 'vue'
+import { Modal, message } from 'ant-design-vue'
+import { useUserStore } from '@/store/user'
+import { add{$c}, get{$c}, list{$c}, remove{$c}, update{$c} } from '@/api/{$m}/{$b}'
+import { num } from '@/utils/tree'
+
+const userStore = useUserStore()
+const can = (perm) => userStore.hasPerm(perm)
+const loading = ref(false)
+const saving = ref(false)
+const rows = ref([])
+const selected = ref([])
+const open = ref(false)
+const query = reactive({ {$queryDefaults} })
+const pagination = reactive({ current: 1, pageSize: 10, total: 0, showSizeChanger: true, showTotal: (total) => `共 \${total} 条` })
+const form = reactive(emptyForm())
+const columns = [
+{$columnsJs}]
+
+function emptyForm() {
+  return { {$emptyFields} }
+}
+
+async function load() {
+  loading.value = true
+  try {
+    const res = await list{$c}(query)
+    rows.value = res.rows || []
+    pagination.total = res.total || 0
+    pagination.current = query.pageNum
+    pagination.pageSize = query.pageSize
+  } finally {
+    loading.value = false
+  }
+}
+
+function search() {
+  query.pageNum = 1
+  load()
+}
+
+function resetQuery() {
+{$resetLines}  search()
+}
+
+function onTableChange(page) {
+  query.pageNum = page.current
+  query.pageSize = page.pageSize
+  load()
+}
+
+function openAdd() {
+  Object.assign(form, emptyForm())
+  open.value = true
+}
+
+async function openEdit(record) {
+  const res = await get{$c}(record.{$pkField})
+  const row = res.data || {}
+  Object.assign(form, emptyForm(), {
+    {$pkField}: num(row.{$pkField}),
+{$assignEdit}  })
+  open.value = true
+}
+
+async function submit() {
+{$requiredJs}  saving.value = true
+  try {
+    if (form.{$pkField}) {
+      await update{$c}(form)
+    } else {
+      await add{$c}(form)
+    }
+    message.success('保存成功')
+    open.value = false
+    load()
+  } finally {
+    saving.value = false
+  }
+}
+
+function onRemove(record) {
+  const ids = record ? String(record.{$pkField}) : selected.value.join(',')
+  Modal.confirm({
+    title: '确认删除所选{$fn}？',
+    onOk: async () => {
+      await remove{$c}(ids)
+      message.success('删除成功')
+      selected.value = []
+      load()
+    },
+  })
+}
+
+onMounted(load)
+</script>
+VUE;
+    }
+
+    /**
+     * 生成路由片段（需手工合并到 route/app.php）
+     */
+    protected function tplRoute(array $v): string
+    {
+        $m = $v['module'];
+        $b = $v['business'];
+        $c = $v['className'];
+        $fn = $v['functionName'];
+        $perm = $v['perm'];
+        return <<<PHP
+// ---- {$fn}（粘贴到 route/app.php 的 /api 分组内）----
+Route::get('{$m}/{$b}/list', 'api.{$m}.{$c}/list')->middleware(\\app\\middleware\\Permission::class)->option(['perms' => '{$perm}:list']);
+Route::get('{$m}/{$b}/get/:id', 'api.{$m}.{$c}/get')->middleware(\\app\\middleware\\Permission::class)->option(['perms' => '{$perm}:edit']);
+Route::post('{$m}/{$b}/add', 'api.{$m}.{$c}/add')->middleware([\\app\\middleware\\Permission::class, \\app\\middleware\\OperLog::class])->option(['perms' => '{$perm}:add', 'title' => '{$fn}']);
+Route::post('{$m}/{$b}/edit', 'api.{$m}.{$c}/edit')->middleware([\\app\\middleware\\Permission::class, \\app\\middleware\\OperLog::class])->option(['perms' => '{$perm}:edit', 'title' => '{$fn}']);
+Route::post('{$m}/{$b}/remove', 'api.{$m}.{$c}/remove')->middleware([\\app\\middleware\\Permission::class, \\app\\middleware\\OperLog::class])->option(['perms' => '{$perm}:remove', 'title' => '{$fn}']);
+PHP;
+    }
+
+    /**
+     * 生成菜单 SQL 片段（需按实际 parent_id 调整）
+     */
+    protected function tplMenuSql(array $v): string
+    {
+        $m = $v['module'];
+        $b = $v['business'];
+        $fn = $v['functionName'];
+        $perm = $v['perm'];
+        $path = "/{$m}/{$b}";
+        $component = "{$m}/{$b}/index";
+        return <<<SQL
+-- {$fn} 菜单（请按实际 parent_id / menu_id 调整后执行）
+-- 目录/菜单
+INSERT INTO sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time, remark)
+VALUES ('{$fn}', 1, 10, '{$b}', '{$component}', 1, 0, 'C', '0', '0', '{$perm}:list', 'form', 'admin', NOW(), '');
+-- 按钮（parent_id 改为上一条菜单 ID）
+-- INSERT INTO sys_menu (menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_by, create_time)
+-- VALUES ('{$fn}查询', @pid, 1, '', '', 1, 0, 'F', '0', '0', '{$perm}:list', '#', 'admin', NOW()),
+--        ('{$fn}新增', @pid, 2, '', '', 1, 0, 'F', '0', '0', '{$perm}:add', '#', 'admin', NOW()),
+--        ('{$fn}修改', @pid, 3, '', '', 1, 0, 'F', '0', '0', '{$perm}:edit', '#', 'admin', NOW()),
+--        ('{$fn}删除', @pid, 4, '', '', 1, 0, 'F', '0', '0', '{$perm}:remove', '#', 'admin', NOW());
+-- 前端路由 path 参考: {$path}  component: {$component}
+SQL;
+    }
+
+    /**
+     * 表名转业务名（小驼峰，去掉常见前缀）
      */
     protected function toBusinessName(string $table): string
     {
@@ -598,9 +914,6 @@ HTML;
         if (str_contains($t, 'decimal') || str_contains($t, 'double') || str_contains($t, 'float')) {
             return 'float';
         }
-        if (str_contains($t, 'datetime') || str_contains($t, 'timestamp') || str_contains($t, 'date')) {
-            return 'string';
-        }
         return 'string';
     }
 
@@ -614,12 +927,87 @@ HTML;
         if (str_contains($t, 'text')) {
             return 'textarea';
         }
-        if (str_contains($n, 'status') || str_contains($n, 'type') || str_contains($n, 'sex')) {
+        if ($n === 'status' || str_ends_with($n, '_status') || $n === 'sex' || $n === 'type' || str_ends_with($n, '_type')) {
             return 'select';
         }
-        if (str_contains($t, 'datetime') || str_contains($t, 'date')) {
+        if (str_contains($t, 'datetime') || str_contains($t, 'timestamp') || str_contains($t, 'date')) {
             return 'datetime';
         }
         return 'input';
+    }
+
+    /**
+     * 导入时默认是否作为查询列
+     */
+    protected function defaultIsQuery(string $columnName, bool $isPk, bool $skip): bool
+    {
+        if ($isPk || $skip) {
+            return false;
+        }
+        $n = strtolower($columnName);
+        foreach (['name', 'title', 'status', 'type', 'code', 'phone', 'mobile', 'email'] as $kw) {
+            if ($n === $kw || str_ends_with($n, '_' . $kw) || str_contains($n, $kw)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 导入时默认查询方式
+     */
+    protected function defaultQueryType(string $columnName, string $htmlType): string
+    {
+        if ($htmlType === 'select' || $htmlType === 'radio') {
+            return 'EQ';
+        }
+        $n = strtolower($columnName);
+        if (str_contains($n, 'status') || str_contains($n, 'type') || str_ends_with($n, '_id')) {
+            return 'EQ';
+        }
+        return 'LIKE';
+    }
+
+    /**
+     * PHP 默认值表达式
+     */
+    protected function phpDefaultExpr(array $col): string
+    {
+        $jt = $col['javaType'] ?? 'string';
+        if ($jt === 'int') {
+            return '0';
+        }
+        if ($jt === 'float') {
+            return '0';
+        }
+        $cn = $col['columnName'] ?? '';
+        if ($cn === 'status') {
+            return "'0'";
+        }
+        return "''";
+    }
+
+    /**
+     * JS 表单默认值表达式
+     */
+    protected function jsDefaultExpr(array $col): string
+    {
+        $jt = $col['javaType'] ?? 'string';
+        if ($jt === 'int' || $jt === 'float') {
+            return '0';
+        }
+        $cn = $col['columnName'] ?? '';
+        if ($cn === 'status') {
+            return "'0'";
+        }
+        return "''";
+    }
+
+    /**
+     * 转义单引号（模板字符串安全）
+     */
+    protected function esc(string $s): string
+    {
+        return str_replace(["\\", "'"], ["\\\\", "\\'"], $s);
     }
 }

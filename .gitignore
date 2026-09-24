@@ -7,9 +7,14 @@ Thumbs.db
 /.idea
 /.vscode
 /vendor
+/admin-ui/node_modules
+/admin-ui/dist
+/site-ui/node_modules
+/public/site
 /.settings
 /.buildpath
 /.project
 AGENTS.md
 #加入doc忽略
 /public/doc/
+/public/yshopadmin/

@@ -40,7 +40,15 @@ class Login extends BaseController
         $service = new LoginService();
         $result = $service->login($username, $password, $validateCode !== null ? (string) $validateCode : null);
         if ($result['ok']) {
-            return $this->success($result['msg']);
+            $data = null;
+            if (($result['token'] ?? '') !== '') {
+                $data = [
+                    'token'     => $result['token'],
+                    'tokenType' => 'Bearer',
+                    'expiresIn' => (int) ($result['expiresIn'] ?? 0),
+                ];
+            }
+            return $this->success($result['msg'], $data);
         }
         return $this->error($result['msg']);
     }

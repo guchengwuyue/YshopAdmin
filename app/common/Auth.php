@@ -15,11 +15,44 @@ class Auth
     public const SESSION_PERMS = 'permissions';
     public const SESSION_ROLES = 'roles';
 
+    protected static bool $tokenBound = false;
+
+    /** @var array<string, mixed>|null */
+    protected static ?array $tokenUser = null;
+
+    /** @var array<int, string>|null */
+    protected static ?array $tokenPerms = null;
+
+    /** @var array<int, mixed>|null */
+    protected static ?array $tokenRoles = null;
+
+    /**
+     * 绑定当前请求的管理员 Bearer 身份（不写 Session）
+     * @param array<string, mixed> $user
+     * @param array<int, string> $permissions
+     * @param array<int, mixed> $roles
+     */
+    public static function bindToken(array $user, array $permissions = [], array $roles = []): void
+    {
+        self::$tokenBound = true;
+        self::$tokenUser = $user;
+        self::$tokenPerms = $permissions;
+        self::$tokenRoles = $roles;
+    }
+
+    public static function usingToken(): bool
+    {
+        return self::$tokenBound;
+    }
+
     /**
      * 获取当前登录用户
      */
     public static function getLoginUser(): ?array
     {
+        if (self::$tokenBound) {
+            return self::$tokenUser;
+        }
         $user = Session::get(self::SESSION_USER);
         return is_array($user) ? $user : null;
     }
@@ -84,12 +117,12 @@ class Auth
             return;
         }
         if ($userId === 1 || self::getLoginName() === 'admin') {
-            Session::set(self::SESSION_PERMS, ['*:*:*']);
+            self::storePermissions(['*:*:*']);
             return;
         }
         $roleIds = Db::name('sys_user_role')->where('user_id', $userId)->column('role_id');
         if (!$roleIds) {
-            Session::set(self::SESSION_PERMS, []);
+            self::storePermissions([]);
             return;
         }
         $perms = Db::name('sys_menu')->alias('m')
@@ -107,25 +140,43 @@ class Auth
                 }
             }
         }
-        Session::set(self::SESSION_PERMS, array_values($result));
+        self::storePermissions(array_values($result));
     }
 
     /**
-     * 获取会话中的权限列表
+     * 获取权限列表（Token 优先，否则会话）
      */
     public static function getPermissions(): array
     {
+        if (self::$tokenBound) {
+            return self::$tokenPerms ?? [];
+        }
         $perms = Session::get(self::SESSION_PERMS);
         return is_array($perms) ? $perms : [];
     }
 
     /**
-     * 获取会话中的角色列表
+     * 获取角色列表（Token 优先，否则会话）
      */
     public static function getRoles(): array
     {
+        if (self::$tokenBound) {
+            return self::$tokenRoles ?? [];
+        }
         $roles = Session::get(self::SESSION_ROLES);
         return is_array($roles) ? $roles : [];
+    }
+
+    /**
+     * @param array<int, string> $permissions
+     */
+    protected static function storePermissions(array $permissions): void
+    {
+        if (self::$tokenBound) {
+            self::$tokenPerms = $permissions;
+            return;
+        }
+        Session::set(self::SESSION_PERMS, $permissions);
     }
 
     /**
@@ -162,6 +213,10 @@ class Auth
      */
     public static function logout(): void
     {
+        self::$tokenBound = false;
+        self::$tokenUser = null;
+        self::$tokenPerms = null;
+        self::$tokenRoles = null;
         Session::delete(self::SESSION_USER);
         Session::delete(self::SESSION_PERMS);
         Session::delete(self::SESSION_ROLES);

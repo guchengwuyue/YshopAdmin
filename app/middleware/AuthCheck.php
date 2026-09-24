@@ -28,7 +28,7 @@ class AuthCheck
 
         if (!$loggedIn) {
             if ($isAjax) {
-                return AjaxResult::unauth('登录超时，请重新登录');
+                return AjaxResult::unauth('登录超时，请重新登录', 200);
             }
 
             $url = Entry::url('/login');

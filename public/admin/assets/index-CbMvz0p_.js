@@ -1,0 +1,1 @@
+import{B as a,j as n,l,p as u,D as c}from"./index-DhsFIglw.js";const i={__name:"index",setup(r){const e=a(),s=c(()=>{var t;return(t=e.meta)!=null&&t.title?e.meta.title+" 开发中":"该菜单还没有对应的管理页"});return(t,_)=>{const o=n("a-result");return l(),u(o,{status:"info",title:"开发中","sub-title":s.value},null,8,["sub-title"])}}};export{i as default};

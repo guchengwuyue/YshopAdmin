@@ -38,8 +38,13 @@ class AddonService
         $keyword = trim((string) ($params['name'] ?? $params['title'] ?? ''));
         $status = $params['status'] ?? '';
 
+        // P6: pay/wechat/file/addondev 已内置，addons/ 仅保留内容类插件
+        $blocked = ['yspay', 'yswechat', 'ysfile', 'addondev'];
         foreach ($this->manager->scan() as $info) {
             $name = $info['name'];
+            if (in_array($name, $blocked, true)) {
+                continue;
+            }
             $db = $dbMap[$name] ?? null;
             $installed = $db !== null;
             $rowStatus = $installed ? (string) ($db['status'] ?? '0') : '-1';

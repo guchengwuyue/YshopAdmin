@@ -85,7 +85,7 @@
       aid: box.data('aid'),
       content: $(this).find('[name=content]').val()
     }).done(function (res) {
-      if (res.code === 0) {
+      if (res.code === 200) {
         alert(res.msg || '评论成功');
         location.reload();
       } else {
@@ -100,7 +100,7 @@
     var url = tag === 'page' ? (base + '/p/vote') : (base + '/a/vote');
     $.post(url, { id: btn.data('id'), type: btn.data('type') || 'like', tag: tag })
       .done(function (res) {
-        if (res.code === 0 && res.data) {
+        if (res.code === 200 && res.data) {
           btn.find('span').text(res.data.likes);
           $('.js-like-num').text(' ' + res.data.likes + ' 点赞');
         } else {
@@ -113,7 +113,7 @@
     var btn = $(this);
     $.post(base + '/ajax/collection', { type: btn.data('type'), aid: btn.data('aid') })
       .done(function (res) {
-        alert(res.msg || (res.code === 0 ? '成功' : '失败'));
+        alert(res.msg || (res.code === 200 ? '成功' : '失败'));
       });
   });
 
@@ -127,7 +127,7 @@
     $btn.data('loading', 1);
     $.post(base + '/ajax/theme', { theme: theme })
       .done(function (res) {
-        if (res && (res.code === 0 || res.code === '0')) {
+        if (res && (res.code === 200)) {
           location.reload();
           return;
         }
@@ -168,7 +168,7 @@
     var emptyHtml = '<div class="loadmore loadmore-line loadmore-nodata"><span class="loadmore-tips">暂无评论</span></div>';
     $.get(base + '/comment/list', { type: box.data('type'), aid: box.data('aid') })
       .done(function (res) {
-        if (res.code !== 0 || !res.data) {
+        if (res.code !== 200 || !res.data) {
           $('#yscms-comment-list').html(emptyHtml);
           return;
         }

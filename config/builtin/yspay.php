@@ -1,0 +1,58 @@
+<?php
+declare(strict_types=1);
+
+return [
+    [
+        'name'    => 'version',
+        'title'   => 'API版本',
+        'type'    => 'radio',
+        'content' => ['v3' => 'V3'],
+        'value'   => 'v3',
+        'tip'     => '默认使用 Composer yansongda/pay V3',
+    ],
+    [
+        'name'    => 'wechat',
+        'title'   => '微信',
+        'type'    => 'array',
+        'value'   => [
+            'appid'          => '',
+            'app_id'         => '',
+            'app_secret'     => '',
+            'miniapp_id'     => '',
+            'mch_id'         => '',
+            'key_v3'         => '',
+            'public_key_id'  => '',
+            'public_key'     => '/data/certs/pay/public_key.pem',
+            'cert_client'    => '/data/certs/pay/apiclient_cert.pem',
+            'cert_key'       => '/data/certs/pay/apiclient_key.pem',
+            'mode'           => 'normal',
+            'sub_mch_id'     => '',
+            'sub_appid'      => '',
+            'sub_app_id'     => '',
+            'sub_miniapp_id' => '',
+            'notify_url'     => '',
+            'log'            => '1',
+        ],
+        'tip'     => '微信支付参数（仅 V3）',
+    ],
+    [
+        'name'    => 'alipay',
+        'title'   => '支付宝',
+        'type'    => 'array',
+        'value'   => [
+            'app_id'              => '',
+            'mode'                => 'normal',
+            'notify_url'          => '/api/pay/notifyx/alipay',
+            'return_url'          => '/api/pay/returnx/alipay',
+            'private_key'         => '',
+            'signtype'            => 'cert',
+            'pid'                 => '',
+            'ali_public_key'      => '',
+            'app_cert_public_key' => '',
+            'alipay_root_cert'    => '',
+            'log'                 => '1',
+            'scanpay'             => '0',
+        ],
+        'tip'     => '支付宝参数',
+    ],
+];

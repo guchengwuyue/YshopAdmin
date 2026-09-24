@@ -1,6 +1,7 @@
 <?php
 namespace app;
 
+use app\common\ApiCode;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
 use think\exception\Handle;
@@ -50,7 +51,28 @@ class ExceptionHandle extends Handle
      */
     public function render($request, Throwable $e): Response
     {
-        // 其他错误交给系统处理
+        if ($e instanceof HttpResponseException) {
+            return parent::render($request, $e);
+        }
+        $path = ltrim((string) $request->pathinfo(), '/');
+        if ($path === 'api' || str_starts_with($path, 'api/')) {
+            $status = 500;
+            $code = ApiCode::ERROR;
+            $msg = '服务器错误';
+            if ($e instanceof HttpException) {
+                $status = $e->getStatusCode();
+                $code = $status >= 400 ? $status : ApiCode::ERROR;
+                if ($e->getMessage() !== '') {
+                    $msg = $e->getMessage();
+                }
+            } elseif ($e instanceof ValidateException) {
+                $status = 200;
+                $msg = $e->getMessage();
+            } elseif ($this->app->isDebug() && $e->getMessage() !== '') {
+                $msg = $e->getMessage();
+            }
+            return json(['code' => $code, 'msg' => $msg], $status);
+        }
         return parent::render($request, $e);
     }
 }

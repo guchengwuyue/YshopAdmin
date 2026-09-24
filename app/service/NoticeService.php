@@ -14,7 +14,7 @@ class NoticeService
 {
     /**
      * 查询通知公告列表
-     * @param array $params 筛选条件（noticeTitle / createBy / noticeType）
+     * @param array $params 筛选条件（noticeTitle / createBy / noticeType / status）
      */
     public function selectList(array $params = []): array
     {
@@ -31,8 +31,19 @@ class NoticeService
         if (isset($params['noticeType']) && $params['noticeType'] !== '') {
             $query->where('notice_type', $params['noticeType']);
         }
+        if (isset($params['status']) && $params['status'] !== '') {
+            $query->where('status', $params['status']);
+        }
+        $query->order('notice_id', 'desc');
         [$rows, $total] = PageHelper::paginate($query);
-        return [PageHelper::camelRows($rows), $total];
+        $rows = PageHelper::camelRows($rows);
+        foreach ($rows as &$row) {
+            if (isset($row['noticeContent']) && !is_string($row['noticeContent'])) {
+                $row['noticeContent'] = (string) $row['noticeContent'];
+            }
+        }
+        unset($row);
+        return [$rows, $total];
     }
 
     /**
@@ -41,7 +52,14 @@ class NoticeService
     public function get(int $noticeId): ?array
     {
         $row = Db::name('sys_notice')->where('notice_id', $noticeId)->find();
-        return $row ? PageHelper::camelKeys($row) : null;
+        if (!$row) {
+            return null;
+        }
+        $data = PageHelper::camelKeys($row);
+        if (isset($data['noticeContent']) && !is_string($data['noticeContent'])) {
+            $data['noticeContent'] = (string) $data['noticeContent'];
+        }
+        return $data;
     }
 
     /**

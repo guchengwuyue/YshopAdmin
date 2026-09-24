@@ -293,7 +293,7 @@
     var tag = $btn.data('tag') || 'archives';
     var url = tag === 'page' ? (yscmsIndex() + '/p/vote') : (yscmsIndex() + '/a/vote');
     $.post(url, { id: id, type: type, tag: tag }).done(function (res) {
-      if (res && res.data && (res.code === 0 || res.code === '0' || res.code === 200 || res.code === 1 || res.code === '1')) {
+      if (res && res.data && res.code === 200) {
         $btn.find('span').first().text(res.data.likes || 0);
       }
     });
@@ -318,15 +318,15 @@
     $btn.data('loading', 1);
     $.post(yscmsIndex() + '/ajax/theme', { theme: theme })
       .done(function (res) {
-        if (res && (res.code === 0 || res.code === '0')) {
+        if (res && res.code === 200) {
           location.reload();
           return;
         }
-        alert((res && res.msg) || '?��????');
+        alert((res && res.msg) || '切换失败');
         $btn.data('loading', 0);
       })
       .fail(function () {
-        alert('?��????');
+        alert('切换失败');
         $btn.data('loading', 0);
       });
   });

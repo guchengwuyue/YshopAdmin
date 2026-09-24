@@ -30,10 +30,13 @@ class Permission
             Auth::reloadPermissions();
         }
         if ($perms !== null && $perms !== '' && !Auth::hasPermi($perms)) {
-            $isAjax = $request->isAjax() || str_contains((string) $request->header('accept'), 'application/json');
+        $isAjax = $request->isAjax()
+            || str_contains((string) $request->header('accept'), 'application/json')
+            || str_starts_with($request->pathinfo(), 'api/')
+            || (bool) $request->param('ajax');
             if ($isAjax) {
                 // 无权限接口：与登录超时区分，仍返回 403
-                return AjaxResult::error('没有权限，请联系管理员授权', 403);
+                return AjaxResult::forbidden('没有权限，请联系管理员授权', 200);
             }
             // 页面请求：提示后回登录（避免 iframe 里干瞪 403）
             $url = Entry::url('/login');

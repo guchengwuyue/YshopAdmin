@@ -19,29 +19,45 @@ class MenuService
      */
     public function selectMenusByUserId(int $userId): array
     {
+        return $this->prefixAdminMenuUrls(TreeUtils::buildMenuTree($this->selectSidebarRows($userId)));
+    }
+
+    /**
+     * 管理端 SPA 动态路由（getRouters）。路径不带 /yshopadmin 前缀。
+     * @return array<int, array<string, mixed>>
+     */
+    public function selectRouters(int $userId): array
+    {
+        return $this->toVueRouters(TreeUtils::buildMenuTree($this->selectSidebarRows($userId)), true);
+    }
+
+    /**
+     * 当前用户可见的目录与菜单（不含按钮）
+     * @return array<int, array<string, mixed>>
+     */
+    protected function selectSidebarRows(int $userId): array
+    {
         if ($userId === 1 || Auth::isAdmin($userId)) {
-            $menus = Db::name('sys_menu')
+            return Db::name('sys_menu')
                 ->whereIn('menu_type', ['M', 'C'])
                 ->where('visible', '0')
                 ->order('parent_id, order_num')
                 ->select()
                 ->toArray();
-        } else {
-            $menus = Db::name('sys_menu')->alias('m')
-                ->join('sys_role_menu rm', 'm.menu_id = rm.menu_id')
-                ->join('sys_user_role ur', 'rm.role_id = ur.role_id')
-                ->join('sys_role r', 'r.role_id = ur.role_id')
-                ->where('ur.user_id', $userId)
-                ->whereIn('m.menu_type', ['M', 'C'])
-                ->where('m.visible', '0')
-                ->where('r.status', '0')
-                ->where('r.del_flag', '0')
-                ->field('distinct m.menu_id,m.menu_name,m.parent_id,m.order_num,m.url,m.target,m.menu_type,m.visible,m.is_refresh,m.perms,m.icon')
-                ->order('m.parent_id, m.order_num')
-                ->select()
-                ->toArray();
         }
-        return $this->prefixAdminMenuUrls(TreeUtils::buildMenuTree($menus));
+        return Db::name('sys_menu')->alias('m')
+            ->join('sys_role_menu rm', 'm.menu_id = rm.menu_id')
+            ->join('sys_user_role ur', 'rm.role_id = ur.role_id')
+            ->join('sys_role r', 'r.role_id = ur.role_id')
+            ->where('ur.user_id', $userId)
+            ->whereIn('m.menu_type', ['M', 'C'])
+            ->where('m.visible', '0')
+            ->where('r.status', '0')
+            ->where('r.del_flag', '0')
+            ->field('distinct m.menu_id,m.menu_name,m.parent_id,m.order_num,m.url,m.target,m.menu_type,m.visible,m.is_refresh,m.perms,m.icon')
+            ->order('m.parent_id, m.order_num')
+            ->select()
+            ->toArray();
     }
 
     /**
@@ -129,7 +145,7 @@ class MenuService
     {
         $hasChild = Db::name('sys_menu')->where('parent_id', $menuId)->count();
         if ($hasChild > 0) {
-            throw new \RuntimeException('Cannot delete: menu has child nodes');
+            throw new \RuntimeException('存在子菜单,不允许删除');
         }
         Db::name('sys_role_menu')->where('menu_id', $menuId)->delete();
         return Db::name('sys_menu')->where('menu_id', $menuId)->delete();
@@ -208,5 +224,81 @@ class MenuService
             }
         }
         return $exclude;
+    }
+
+    /**
+     * 菜单树转 Vue Router 记录（RuoYi getRouters 形态）
+     * @param array<int, array<string, mixed>> $menus
+     * @return array<int, array<string, mixed>>
+     */
+    protected function toVueRouters(array $menus, bool $top): array
+    {
+        $routes = [];
+        foreach ($menus as $menu) {
+            $children = is_array($menu['children'] ?? null) ? $menu['children'] : [];
+            $childRoutes = $children !== [] ? $this->toVueRouters($children, false) : [];
+            $url = (string) ($menu['url'] ?? '');
+            $menuId = (int) ($menu['menuId'] ?? 0);
+            $external = preg_match('#^https?://#i', $url) === 1;
+            $isDir = $childRoutes !== [] || (string) ($menu['menuType'] ?? '') === 'M';
+            $node = [
+                'name'      => 'menu' . $menuId,
+                'path'      => $isDir ? $this->directoryPath($menuId, $top) : $this->leafPath($url, $menuId),
+                'hidden'    => (string) ($menu['visible'] ?? '0') === '1',
+                'component' => $this->routerComponent($isDir, $top, $external, $url),
+                'meta'      => [
+                    'title'   => (string) ($menu['menuName'] ?? ''),
+                    'icon'    => (string) ($menu['icon'] ?? ''),
+                    'noCache' => (string) ($menu['isRefresh'] ?? '1') === '1',
+                    'link'    => $external ? $url : null,
+                ],
+            ];
+            if ($childRoutes !== []) {
+                $node['alwaysShow'] = true;
+                $node['children'] = $childRoutes;
+            }
+            $routes[] = $node;
+        }
+        return $routes;
+    }
+
+    protected function routerComponent(bool $isDir, bool $top, bool $external, string $url): string
+    {
+        if ($external) {
+            return 'InnerLink';
+        }
+        if ($isDir && $top) {
+            return 'Layout';
+        }
+        if ($isDir) {
+            return 'ParentView';
+        }
+        return $this->viewComponent($url);
+    }
+
+    protected function viewComponent(string $url): string
+    {
+        $path = trim($url, '/');
+        if ($path === '' || $path === '#') {
+            return 'placeholder/index';
+        }
+        return $path . '/index';
+    }
+
+    protected function directoryPath(int $menuId, bool $top): string
+    {
+        return ($top ? '/dir-' : 'dir-') . $menuId;
+    }
+
+    protected function leafPath(string $url, int $menuId): string
+    {
+        if (preg_match('#^https?://#i', $url) === 1) {
+            return '/external/' . $menuId;
+        }
+        $clean = trim($url, '/');
+        if ($clean === '' || $clean === '#') {
+            return '/m' . $menuId;
+        }
+        return '/' . $clean;
     }
 }

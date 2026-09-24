@@ -1,6 +1,6 @@
 # YshopAdmin 快速开发平台
 
-基于 **ThinkPHP 8** 的权限后台快速开发平台
+基于 **ThinkPHP 8 纯 API** + **Vue3 双 SPA** 的权限后台 / 内容站点平台
 
 [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?logo=php&logoColor=white)](https://www.php.net/)
 [![ThinkPHP](https://img.shields.io/badge/ThinkPHP-8.0-5FB878)](https://www.thinkphp.cn/)
@@ -11,114 +11,112 @@
 
 ## 概述
 
-- YshopAdmin 快速开发平台：通用权限管理后台，开箱即用，聚焦业务快速交付
-- 登录鉴权、RBAC 权限、数据范围、系统管理、监控运维、代码生成、Excel 导入导出一体具备
-- Session + 中间件鉴权，think-view 服务端渲染，部署依赖少（PHP + MySQL 即可）
-- 默认 file 缓存 / Session，不强制 Redis，轻量易扩展
-- 系统内置**插件管理**（`系统管理 → 插件管理`）：扫描 `addons/` 目录，支持安装 / 启用 / 禁用 / 卸载与本地 zip 安装，业务能力可按需扩展、互不影响。
-- 系统目前已有插件官网CMS内容管理系统、支付聚合、微信公众号管理、文件管理等，插件下载地址：https://www.yixiang.co/c/YshopAdminchajianxiazai.html
+- YshopAdmin：通用权限管理 + 站点内容（CMS 插件），开箱即用
+- 管理端 `admin-ui/`（Vue3 + Ant Design Vue）；站点 `site-ui/`（Vue3 + Bootstrap 5）
+- 后端 ThinkPHP 8 **JSON API**（`yshopadmin.php` / `index.php` 双网关）；无业务 SSR
+- 默认 file 缓存 / Session，不强制 Redis
 
 ```
 如果对你有帮助，欢迎 Star 收藏，谢谢！
 ```
+
 ## 快速开始
 
 完整的环境要求、安装部署、账号说明与常见问题，请直接查看在线文档：
 
-- 在线文档：https://cms.yixiang.co/doc/
+- 在线文档：https://cms.yixiang.co/yshopadmin/index.html
 
-
-建议从文档中的 **环境部署**、**快速了解** 开始。
 
 ## 演示地址
 
-- 在线演示：https://cms.yixiang.co/yshopadmin
-- 账号：`admin` / 密码：`admin123`
-- 插件cms演示地址：https://cms.yixiang.co/ （目前内置了两套模板主题，可以前台自行切换查看效果）
+- 在线演示：https://cms.yixiang.co/yshopadmin/index.html
+`
 
 ### 演示效果
 
-![输入图片说明](docs/images/305.png)
-![输入图片说明](docs/images/100.png)
-![输入图片说明](docs/images/302.png)
-![输入图片说明](docs/images/301.png)
-![输入图片说明](docs/images/300.png)
-![输入图片说明](docs/images/200.png)
-![输入图片说明](docs/images/303.png)
+![登录页](./docs/images/demo-login.png)
 
+![工作台](./docs/images/demo-home.png)
 
+![用户管理](./docs/images/demo-user.png)
 
+![定时任务](./docs/images/demo-job.png)
+
+![支付配置](./docs/images/demo-pay.png)
+
+![内容统计](./docs/images/demo-cms-stats.png)
+
+![内容管理](./docs/images/demo-cms-content.png)
 
 ## 技术栈
 
 ### 后端
 
-- 核心框架：ThinkPHP 8 + think-view + think-orm
+- 核心框架：ThinkPHP 8 + think-orm + vue3
 - Excel：PhpSpreadsheet（导入 / 导出 / 模板）
-- 鉴权：Session + `AuthCheck` / `Permission` / `OperLog` 中间件
+- 鉴权：管理端 Bearer `adm_` / 会员 Bearer `mem_`；`AdminToken` / `MemberToken` / `Permission` / `OperLog`
 - 权限模型：RBAC（菜单权限标识）+ 数据范围
-- 分页约定：`PageHelper`
+- 分页约定：`PageHelper`；JSON 信封 `code: 200`
 - 缓存 / Session：默认 **file**（可选 Redis，非必须）
 - 定时任务：`php think job:run` + 任务白名单
 
 ### 前端
 
-- jQuery + Bootstrap + bootstrap-table + zTree + layer
-- 静态资源目录：`public/`（`/css`、`/js`、`/ajax` 等）
-- 列表交互：`$.table` / `$.treeTable` / `$.operate` / `$.modal`
+- 管理端：`admin-ui/` — Vue3 + Vite + Ant Design Vue + Pinia（部署 `public/admin/`）
+- 站点端：`site-ui/` — Vue3 + Vite + Bootstrap 5 + bootstrap-vue-next（部署 `public/site/`）
+- CMS 插件后台页与站点主题：`addons/yscms/web/{admin,site}/`
 
 ## 内置功能
 
 1. **用户管理**：系统操作者配置，支持导入导出与重置密码
 2. **部门管理**：组织机构树（公司 / 部门 / 小组）
 3. **岗位管理**：用户职务配置
-4. **菜单管理**：目录 / 菜单 / 按钮权限标识
+4. **菜单管理**：目录 / 菜单 / 按钮权限标识（SPA path/component）
 5. **角色管理**：菜单权限与数据范围分配
 6. **字典管理**：系统固定数据项维护
 7. **参数设置**：系统动态参数配置
 8. **通知公告**：公告信息发布与维护
-9. **操作日志**：写操作审计记录与查询
-10. **登录日志**：登录记录查询；支持账号解锁
-11. **在线用户**：当前会话用户查看与强制下线
-12. **定时任务**：任务 CRUD / 启停 / 执行一次 / 执行日志
-13. **服务监控**：CPU、内存、磁盘、PHP、操作系统信息
-14. **缓存监控**：配置 / 字典等缓存查看与清理
-15. **表单构建**：拖拽式表单构建页
-16. **代码生成**：导入数据表，预览 / 下载 PHP CRUD 骨架
-17. **个人中心**：资料与密码维护
+9. **操作日志** / **登录日志** / **在线用户**
+10. **定时任务** / **服务监控** / **缓存监控**
+11. **代码生成**：导入数据表，预览 / 下载 PHP CRUD 骨架
+12. **文件管理**（系统工具）：本地 / S3 等存储
+13. **插件开发**（系统工具）：CMS 向脚手架 / 打包 / 菜单同步
+14. **支付** / **微信**：系统一级菜单（配置、回调、验证码等）
+15. **插件管理**：安装 / 启停 / 配置（目标态主要管理 yscms）
+16. **CMS（yscms 插件）**：栏目 / 文档 / 主题皮肤 / 内容 API
 
 ## 项目结构
 
 ```text
 YshopAdmin/
-├── addons/                  # 插件功能
+├── admin-ui/                # 管理端 SPA（Ant Design Vue）
+├── site-ui/                 # 站点 SPA（Bootstrap 5）
+├── addons/
+│   └── yscms/               # 唯一业务插件（CMS）
 ├── app/
-│   ├── controller/          # 控制器（system / monitor / tool）
-│   ├── service/             # 业务逻辑 XxxService
-│   ├── common/              # Auth、PageHelper、AjaxResult、ExcelUtil…
-│   ├── middleware/          # AuthCheck、Permission、OperLog、DemoMode
-│   ├── model/               # 少量模型（多数业务用 Db::name）
-│   ├── job/                 # 定时任务目标
-│   └── command/             # 控制台命令（含 job:run）
-├── config/                  # ThinkPHP 配置
-├── database/sql/            # SQL 脚本
-├── public/                  # Web 根目录（静态资源 + index.php + doc/）
-├── route/app.php            # 全部 HTTP 路由与权限注解
-├── view/                    # think-view 模板
-├── runtime/                 # 缓存、日志、导出临时文件
-├── .env                     # 本地环境
+│   ├── controller/api/      # JSON API（system / monitor / tool / pay / wechat）
+│   ├── service/             # 业务逻辑（含 pay / wechat / file / addondev）
+│   ├── library/             # 内置底层库
+│   ├── common/              # Auth、BuiltinConfig、PageHelper、Token…
+│   ├── middleware/          # AdminToken、MemberToken、JsonOnly…
+│   └── …
+├── config/builtin/          # 支付/微信配置 schema
+├── data/builtin/            # 内置配置值；data/certs/pay/ 证书
+├── database/sql/
+├── public/                  # Web 根（yshopadmin.php / index.php / site / admin）
+├── route/app.php
 └── README.md
 ```
 
-新增业务模块时：`controller` + `service` + `view` + `route/app.php` 同步落地，菜单与权限写入系统菜单表。
+新增系统能力：`app/controller/api` + `app/service` + `admin-ui` + `route/app.php`。内容类插件才写 `addons/{name}/`。
 
 ## 优势
 
-1. 权限、数据范围、操作日志开箱即用，业务只需补 CRUD
-2. 依赖少（PHP + MySQL 即可），上手与部署成本低
-3. 代码生成可快速产出 PHP CRUD 骨架，减少重复劳动
-4. 自带 Docsify 在线文档，便于团队协作与交付说明
-5. 结构清晰，便于二次开发与模块扩展
+1. 权限、数据范围、操作日志开箱即用，业务只需补 CRUD / API
+2. 前后端分离，管理端与站点双 UI 库隔离
+3. 代码生成 + 插件脚手架（CMS 向）减少重复劳动
+4. 依赖少（PHP + MySQL 即可），上手与部署成本低
+5. 结构清晰：内置能力与内容插件边界明确
 
 ## 特别鸣谢
 - [ruoyi](https://github.com/yangzongzhuan/RuoYi) — 若依系统

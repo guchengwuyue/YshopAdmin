@@ -1,0 +1,3 @@
+// Active theme pack (VITE_THEME -> loadPaths in vite.config.js).
+// Entry stays inside site-ui so Vite serves /src/styles/... (not /@fs/D:/...).
+@import "theme";

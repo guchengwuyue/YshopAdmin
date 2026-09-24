@@ -15,13 +15,47 @@ class ServerService
     {
         $mem = $this->memory();
         $php = $this->phpInfo();
-        return [
+        return $this->utf8Deep([
             'cpu'  => $this->cpu(),
             'mem'  => $mem,
             'jvm'  => $php, // 复用 JVM 列展示 PHP 进程内存
             'sys'  => $this->sys(),
             'sysFiles' => $this->disks(),
-        ];
+        ]);
+    }
+
+    /**
+     * Windows 下主机名/路径等常为系统编码（GBK），统一转为 UTF-8，避免 json_encode 报 Malformed UTF-8
+     */
+    protected function toUtf8(string $value): string
+    {
+        if ($value === '' || mb_check_encoding($value, 'UTF-8')) {
+            return $value;
+        }
+        $converted = @mb_convert_encoding($value, 'UTF-8', 'GBK,GB18030,CP936');
+        if (is_string($converted) && $converted !== '' && mb_check_encoding($converted, 'UTF-8')) {
+            return $converted;
+        }
+        return preg_replace('/[\x80-\xFF]+/', '?', $value) ?: $value;
+    }
+
+    /**
+     * 递归清洗字符串为合法 UTF-8
+     */
+    protected function utf8Deep(mixed $data): mixed
+    {
+        if (is_string($data)) {
+            return $this->toUtf8($data);
+        }
+        if (is_array($data)) {
+            $out = [];
+            foreach ($data as $k => $v) {
+                $key = is_string($k) ? $this->toUtf8($k) : $k;
+                $out[$key] = $this->utf8Deep($v);
+            }
+            return $out;
+        }
+        return $data;
     }
 
     /**

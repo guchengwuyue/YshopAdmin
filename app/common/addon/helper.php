@@ -18,9 +18,9 @@ if (!function_exists('addon_path')) {
 
 if (!function_exists('addon_view')) {
     /**
-     * Absolute addon view path for View::fetch (do not change view_path)
+     * Absolute addon view path (legacy helper; business HTML views removed in P6)
      * @param string $name addon name
-     * @param string $template relative template e.g. config/index or api/wechat
+     * @param string $template relative template e.g. config/index
      */
     function addon_view(string $name, string $template): string
     {
@@ -75,6 +75,7 @@ if (!function_exists('set_addon_config')) {
 if (!function_exists('addon_url')) {
     /**
      * Build addon public URL as a literal path (not ThinkPHP controller url())
+     * Always targets the front entry — never /yshopadmin (public routes live there).
      * @param string $url e.g. yspay/api/notifyx or addons/yspay/api/wechat
      */
     function addon_url(string $url, array $vars = [], bool $suffix = false, $domain = false): string
@@ -90,12 +91,7 @@ if (!function_exists('addon_url')) {
             $path .= (str_contains($path, '?') ? '&' : '?') . http_build_query($vars);
         }
         if ($domain === true || $domain === 'auto') {
-            try {
-                $req = request();
-                $root = rtrim((string) $req->domain() . (string) $req->root(), '/');
-            } catch (\Throwable) {
-                $root = '';
-            }
+            $root = \app\common\Entry::publicRoot(true);
             if ($root === '' || !preg_match('#^https?://#i', $root)) {
                 return $path;
             }

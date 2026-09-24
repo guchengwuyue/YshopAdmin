@@ -4,208 +4,214 @@ use app\common\addon\AddonManager;
 use think\facade\Route;
 
 if (Entry::isAdmin()) {
-// 后台公开路由
-Route::get('/', 'Index/home');
-Route::get('login', 'Login/index');
-Route::post('login', 'Login/ajaxLogin');
-Route::get('logout', 'Login/logout');
-Route::get('unauth', 'Login/unauth');
+// 管理网关 JSON API（Bearer adm_）。禁止 View::fetch。
+Route::group('api', function () {
+    Route::post('login', 'api.Auth/login');
+
+    Route::group(function () {
+        Route::post('logout', 'api.Auth/logout');
+        Route::get('getInfo', 'api.Auth/getInfo');
+        Route::get('getRouters', 'api.Router/getRouters');
+
+        Route::get('system/user/list', 'api.system.User/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:list']);
+        Route::get('system/user/add', 'api.system.User/addForm')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:add']);
+        Route::get('system/user/edit/:id', 'api.system.User/editForm')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:edit']);
+        Route::post('system/user/add', 'api.system.User/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:add', 'title' => '用户管理']);
+        Route::post('system/user/edit', 'api.system.User/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:edit', 'title' => '用户管理']);
+        Route::post('system/user/remove', 'api.system.User/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:remove', 'title' => '用户管理']);
+        Route::post('system/user/resetPwd', 'api.system.User/resetPwd')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:resetPwd', 'title' => '重置密码']);
+        Route::post('system/user/changeStatus', 'api.system.User/changeStatus')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:edit', 'title' => '用户状态']);
+        Route::get('system/user/deptTree', 'api.system.User/deptTree')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:list']);
+
+        Route::get('system/role/list', 'api.system.Role/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:role:list']);
+        Route::get('system/role/get/:id', 'api.system.Role/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:role:edit']);
+        Route::post('system/role/add', 'api.system.Role/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:add', 'title' => '角色管理']);
+        Route::post('system/role/edit', 'api.system.Role/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:edit', 'title' => '角色管理']);
+        Route::post('system/role/remove', 'api.system.Role/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:remove', 'title' => '角色管理']);
+        Route::post('system/role/changeStatus', 'api.system.Role/changeStatus')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:edit', 'title' => '角色状态']);
+        Route::post('system/role/authDataScope', 'api.system.Role/authDataScope')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:edit', 'title' => '角色数据权限']);
+        Route::get('system/role/menuTree', 'api.system.Role/menuTree');
+        Route::get('system/role/deptTree', 'api.system.Role/deptTree');
+
+        Route::get('system/menu/list', 'api.system.Menu/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:menu:list']);
+        Route::get('system/menu/tree', 'api.system.Menu/tree')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:menu:list']);
+        Route::get('system/menu/get/:id', 'api.system.Menu/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:menu:edit']);
+        Route::post('system/menu/add', 'api.system.Menu/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:add', 'title' => '菜单管理']);
+        Route::post('system/menu/edit', 'api.system.Menu/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:edit', 'title' => '菜单管理']);
+        Route::post('system/menu/remove', 'api.system.Menu/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:remove', 'title' => '菜单管理']);
+
+        Route::get('system/dept/list', 'api.system.Dept/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dept:list']);
+        Route::get('system/dept/tree', 'api.system.Dept/tree');
+        Route::get('system/dept/get/:id', 'api.system.Dept/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dept:edit']);
+        Route::post('system/dept/add', 'api.system.Dept/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:add', 'title' => '部门管理']);
+        Route::post('system/dept/edit', 'api.system.Dept/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:edit', 'title' => '部门管理']);
+        Route::post('system/dept/remove', 'api.system.Dept/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:remove', 'title' => '部门管理']);
+
+        Route::get('system/post/list', 'api.system.Post/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:post:list']);
+        Route::get('system/post/get/:id', 'api.system.Post/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:post:edit']);
+        Route::post('system/post/add', 'api.system.Post/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:post:add', 'title' => '岗位管理']);
+        Route::post('system/post/edit', 'api.system.Post/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:post:edit', 'title' => '岗位管理']);
+        Route::post('system/post/remove', 'api.system.Post/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:post:remove', 'title' => '岗位管理']);
+
+        Route::get('system/notice/list', 'api.system.Notice/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:notice:list']);
+        Route::get('system/notice/get/:id', 'api.system.Notice/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:notice:edit']);
+        Route::post('system/notice/add', 'api.system.Notice/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:notice:add', 'title' => '通知公告']);
+        Route::post('system/notice/edit', 'api.system.Notice/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:notice:edit', 'title' => '通知公告']);
+        Route::post('system/notice/remove', 'api.system.Notice/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:notice:remove', 'title' => '通知公告']);
+
+        Route::get('system/dict/list', 'api.system.Dict/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:list']);
+        Route::get('system/dict/get/:id', 'api.system.Dict/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:edit']);
+        Route::post('system/dict/add', 'api.system.Dict/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:add', 'title' => '字典管理']);
+        Route::post('system/dict/edit', 'api.system.Dict/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:edit', 'title' => '字典管理']);
+        Route::post('system/dict/remove', 'api.system.Dict/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:remove', 'title' => '字典管理']);
+        Route::get('system/dict/data/list', 'api.system.DictData/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:list']);
+        Route::get('system/dict/data/type/:dictType', 'api.system.DictData/type')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:list']);
+        Route::get('system/dict/data/get/:id', 'api.system.DictData/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:edit']);
+        Route::post('system/dict/data/add', 'api.system.DictData/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:add', 'title' => '字典数据']);
+        Route::post('system/dict/data/edit', 'api.system.DictData/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:edit', 'title' => '字典数据']);
+        Route::post('system/dict/data/remove', 'api.system.DictData/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:remove', 'title' => '字典数据']);
+
+        Route::get('system/config/list', 'api.system.Config/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:config:list']);
+        Route::get('system/config/get/:id', 'api.system.Config/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:config:edit']);
+        Route::post('system/config/add', 'api.system.Config/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:config:add', 'title' => '参数设置']);
+        Route::post('system/config/edit', 'api.system.Config/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:config:edit', 'title' => '参数设置']);
+        Route::post('system/config/remove', 'api.system.Config/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:config:remove', 'title' => '参数设置']);
+
+        Route::get('system/addon/list', 'api.system.Addon/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:addon:list']);
+        Route::post('system/addon/install', 'api.system.Addon/install')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:install', 'title' => '插件安装']);
+        Route::post('system/addon/uninstall', 'api.system.Addon/uninstall')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:uninstall', 'title' => '插件卸载']);
+        Route::post('system/addon/enable', 'api.system.Addon/enable')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:edit', 'title' => '插件启用']);
+        Route::post('system/addon/disable', 'api.system.Addon/disable')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:edit', 'title' => '插件禁用']);
+        Route::post('system/addon/upload', 'api.system.Addon/upload')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:install', 'title' => '本地安装插件']);
+        Route::get('system/addon/config/:name', 'api.system.Addon/config')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:addon:config']);
+        Route::post('system/addon/config', 'api.system.Addon/saveConfig')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:config', 'title' => '插件配置']);
+
+        Route::get('monitor/operlog/list', 'api.monitor.Operlog/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:operlog:list']);
+        Route::get('monitor/operlog/get/:id', 'api.monitor.Operlog/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:operlog:detail']);
+        Route::post('monitor/operlog/remove', 'api.monitor.Operlog/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:operlog:remove', 'title' => '操作日志']);
+        Route::post('monitor/operlog/clean', 'api.monitor.Operlog/clean')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:operlog:remove', 'title' => '清空操作日志']);
+        Route::get('monitor/logininfor/list', 'api.monitor.Logininfor/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:logininfor:list']);
+        Route::post('monitor/logininfor/remove', 'api.monitor.Logininfor/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:logininfor:remove', 'title' => '登录日志']);
+        Route::post('monitor/logininfor/clean', 'api.monitor.Logininfor/clean')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:logininfor:remove', 'title' => '清空登录日志']);
+        Route::post('monitor/logininfor/unlock', 'api.monitor.Logininfor/unlock')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:logininfor:unlock', 'title' => '账户解锁']);
+        Route::get('monitor/online/list', 'api.monitor.Online/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:online:list']);
+        Route::post('monitor/online/batchForceLogout', 'api.monitor.Online/batchForceLogout')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:online:batchForceLogout', 'title' => '强退用户']);
+        Route::get('monitor/server', 'api.monitor.Server/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:server:view']);
+        Route::get('monitor/cache/names', 'api.monitor.Cache/names')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
+        Route::get('monitor/cache/keys', 'api.monitor.Cache/keys')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
+        Route::get('monitor/cache/value', 'api.monitor.Cache/value')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
+        Route::post('monitor/cache/clearName', 'api.monitor.Cache/clearName')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:cache:view', 'title' => '清理缓存']);
+        Route::post('monitor/cache/clearKey', 'api.monitor.Cache/clearKey')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:cache:view', 'title' => '清理缓存键']);
+        Route::post('monitor/cache/clearAll', 'api.monitor.Cache/clearAll')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:cache:view', 'title' => '清理全部缓存']);
+        Route::get('monitor/job/list', 'api.monitor.Job/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:list']);
+        Route::get('monitor/job/get/:id', 'api.monitor.Job/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:edit']);
+        Route::post('monitor/job/add', 'api.monitor.Job/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:add', 'title' => '定时任务']);
+        Route::post('monitor/job/edit', 'api.monitor.Job/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:edit', 'title' => '定时任务']);
+        Route::post('monitor/job/remove', 'api.monitor.Job/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:remove', 'title' => '定时任务']);
+        Route::post('monitor/job/changeStatus', 'api.monitor.Job/changeStatus')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:changeStatus', 'title' => '任务状态']);
+        Route::post('monitor/job/run', 'api.monitor.Job/run')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:changeStatus', 'title' => '执行任务']);
+        Route::get('monitor/jobLog/list', 'api.monitor.JobLog/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:detail']);
+        Route::post('monitor/jobLog/remove', 'api.monitor.JobLog/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:remove', 'title' => '调度日志']);
+        Route::post('monitor/jobLog/clean', 'api.monitor.JobLog/clean')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:remove', 'title' => '清空调度日志']);
+
+        Route::get('tool/gen/list', 'api.tool.Gen/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:list']);
+        Route::get('tool/gen/db/list', 'api.tool.Gen/dbList')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:list']);
+        Route::get('tool/gen/get/:id', 'api.tool.Gen/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:edit']);
+        Route::post('tool/gen/importTable', 'api.tool.Gen/importTable')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:gen:code', 'title' => '导入表']);
+        Route::post('tool/gen/edit', 'api.tool.Gen/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:gen:edit', 'title' => '代码生成']);
+        Route::post('tool/gen/remove', 'api.tool.Gen/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:gen:remove', 'title' => '代码生成']);
+        Route::get('tool/gen/preview/:id', 'api.tool.Gen/preview')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:preview']);
+        Route::get('tool/gen/download/:id', 'api.tool.Gen/download')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:code']);
+
+        Route::get('tool/file/list', 'api.tool.File/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:file:list']);
+        Route::post('tool/file/upload', 'api.tool.File/upload')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:upload', 'title' => '文件上传']);
+        Route::post('tool/file/remove', 'api.tool.File/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:remove', 'title' => '文件删除']);
+        Route::post('tool/file/move', 'api.tool.File/move')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:edit', 'title' => '文件移动']);
+        Route::get('tool/fileGroup/tree', 'api.tool.FileGroup/tree')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:file:list']);
+        Route::post('tool/fileGroup/add', 'api.tool.FileGroup/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:edit', 'title' => '文件分组']);
+        Route::post('tool/fileGroup/edit', 'api.tool.FileGroup/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:edit', 'title' => '文件分组']);
+        Route::post('tool/fileGroup/remove', 'api.tool.FileGroup/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:edit', 'title' => '文件分组']);
+        Route::get('tool/fileConfig/list', 'api.tool.FileConfig/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:file:list']);
+        Route::get('tool/fileConfig/get/:id', 'api.tool.FileConfig/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:file:edit']);
+        Route::post('tool/fileConfig/add', 'api.tool.FileConfig/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:add', 'title' => '文件配置']);
+        Route::post('tool/fileConfig/edit', 'api.tool.FileConfig/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:edit', 'title' => '文件配置']);
+        Route::post('tool/fileConfig/remove', 'api.tool.FileConfig/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:remove', 'title' => '文件配置']);
+        Route::post('tool/fileConfig/master', 'api.tool.FileConfig/master')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:file:edit', 'title' => '文件主配置']);
+        Route::post('tool/fileConfig/test', 'api.tool.FileConfig/test')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:file:edit']);
+
+        Route::get('tool/addondev/list', 'api.tool.AddonDev/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:addondev:list']);
+        Route::get('tool/addondev/get/:name', 'api.tool.AddonDev/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:addondev:edit']);
+        Route::post('tool/addondev/add', 'api.tool.AddonDev/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:add', 'title' => '插件开发']);
+        Route::post('tool/addondev/edit', 'api.tool.AddonDev/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:edit', 'title' => '插件开发']);
+        Route::post('tool/addondev/package', 'api.tool.AddonDev/package')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:package', 'title' => '插件打包']);
+        Route::get('tool/addondev/menu', 'api.tool.AddonDev/menu')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:addondev:list']);
+        Route::get('tool/addondev/menu/get/:id', 'api.tool.AddonDev/menuGet')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:addondev:edit']);
+        Route::get('tool/addondev/menu/tree', 'api.tool.AddonDev/menuTree')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:addondev:list']);
+        Route::post('tool/addondev/menu/add', 'api.tool.AddonDev/menuAdd')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:edit', 'title' => '插件菜单']);
+        Route::post('tool/addondev/menu/edit', 'api.tool.AddonDev/menuEdit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:edit', 'title' => '插件菜单']);
+        Route::post('tool/addondev/menu/remove', 'api.tool.AddonDev/menuRemove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:edit', 'title' => '插件菜单']);
+        Route::post('tool/addondev/sync', 'api.tool.AddonDev/sync')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:addondev:edit', 'title' => '同步插件菜单']);
+
+        Route::get('pay/config', 'api.pay.Config/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'pay:config:view']);
+        Route::post('pay/config', 'api.pay.Config/save')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'pay:config:edit', 'title' => '支付配置']);
+        Route::post('pay/config/upload', 'api.pay.Config/upload')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'pay:config:edit', 'title' => '支付证书']);
+        Route::post('pay/test', 'api.pay.Test/pay')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'pay:test:pay', 'title' => '支付测试']);
+
+        Route::get('wechat/setting', 'api.wechat.Setting/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:setting:view']);
+        Route::post('wechat/setting', 'api.wechat.Setting/save')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:setting:edit', 'title' => '微信设置']);
+        Route::get('wechat/config/list', 'api.wechat.Config/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:config:list']);
+        Route::get('wechat/config/get/:id', 'api.wechat.Config/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:config:edit']);
+        Route::post('wechat/config/add', 'api.wechat.Config/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:config:add', 'title' => '微信配置']);
+        Route::post('wechat/config/edit', 'api.wechat.Config/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:config:edit', 'title' => '微信配置']);
+        Route::post('wechat/config/remove', 'api.wechat.Config/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:config:remove', 'title' => '微信配置']);
+        Route::get('wechat/menu', 'api.wechat.Menu/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:menu:view']);
+        Route::post('wechat/menu/save', 'api.wechat.Menu/save')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:menu:edit', 'title' => '微信菜单']);
+        Route::post('wechat/menu/pull', 'api.wechat.Menu/pull')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:menu:remote', 'title' => '拉取微信菜单']);
+        Route::post('wechat/menu/sync', 'api.wechat.Menu/sync')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:menu:sync', 'title' => '同步微信菜单']);
+        Route::get('wechat/autoreply/list', 'api.wechat.Autoreply/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:autoreply:list']);
+        Route::get('wechat/autoreply/get/:id', 'api.wechat.Autoreply/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:autoreply:edit']);
+        Route::post('wechat/autoreply/add', 'api.wechat.Autoreply/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:autoreply:add', 'title' => '自动回复']);
+        Route::post('wechat/autoreply/edit', 'api.wechat.Autoreply/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:autoreply:edit', 'title' => '自动回复']);
+        Route::post('wechat/autoreply/remove', 'api.wechat.Autoreply/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:autoreply:remove', 'title' => '自动回复']);
+        Route::get('wechat/response/list', 'api.wechat.Response/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:response:list']);
+        Route::get('wechat/response/get/:id', 'api.wechat.Response/get')->middleware(\app\middleware\Permission::class)->option(['perms' => 'wechat:response:edit']);
+        Route::post('wechat/response/add', 'api.wechat.Response/add')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:response:add', 'title' => '微信资源']);
+        Route::post('wechat/response/edit', 'api.wechat.Response/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:response:edit', 'title' => '微信资源']);
+        Route::post('wechat/response/remove', 'api.wechat.Response/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'wechat:response:remove', 'title' => '微信资源']);
+    })->middleware([
+        \app\middleware\AdminToken::class,
+        \app\middleware\DemoMode::class,
+    ]);
+})->middleware(\app\middleware\JsonOnly::class);
+
+// P6: Think SSR views removed; legacy MPA entry redirects to admin-ui SPA
+Route::get('/', function () {
+    return redirect('/admin/', 302);
+});
+Route::get('login', function () {
+    return redirect('/admin/login', 302);
+});
+Route::get('logout', function () {
+    return redirect('/admin/login', 302);
+});
+Route::get('unauth', function () {
+    return redirect('/admin/login', 302);
+});
+Route::get('index', function () {
+    return redirect('/admin/', 302);
+});
 Route::get('captcha/captchaImage', 'Captcha/captchaImage');
 
-// 需登录
+// Addon auth JSON（yscms 等）：与 /api 一致走 Bearer adm_，避免 Session 过期后 Token 仍有效却 403
 Route::group(function () {
-    Route::get('index', 'Index/index');
-    Route::get('system/main', 'Index/main');
-
-    // 用户
-    Route::get('system/user', 'system.User/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:view']);
-    Route::post('system/user/list', 'system.User/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:list']);
-    Route::rule('system/user/add', 'system.User/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:add', 'title' => '用户管理']);
-    Route::get('system/user/edit/:id', 'system.User/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:edit']);
-    Route::post('system/user/edit', 'system.User/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:edit', 'title' => '用户管理']);
-    Route::post('system/user/remove', 'system.User/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:remove', 'title' => '用户管理']);
-    Route::rule('system/user/resetPwd/:id', 'system.User/resetPwd', 'GET|POST')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:resetPwd']);
-    Route::post('system/user/resetPwd', 'system.User/resetPwd')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:resetPwd', 'title' => '重置密码']);
-    Route::post('system/user/checkLoginNameUnique', 'system.User/checkLoginNameUnique');
-    Route::post('system/user/changeStatus', 'system.User/changeStatus')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:user:edit', 'title' => '用户状态']);
-    Route::get('system/user/deptTreeData', 'system.User/deptTreeData');
-    Route::get('system/user/selectDeptTree/:deptId', 'system.User/selectDeptTree');
-
-    // 个人中心
-    Route::get('system/user/profile', 'system.Profile/index');
-    Route::post('system/user/profile/update', 'system.Profile/update')->middleware(\app\middleware\OperLog::class)->option(['title' => '个人中心']);
-    Route::rule('system/user/profile/resetPwd', 'system.Profile/resetPwd', 'GET|POST')->middleware(\app\middleware\OperLog::class)->option(['title' => '修改密码']);
-
-    // 角色
-    Route::get('system/role', 'system.Role/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:role:view']);
-    Route::post('system/role/list', 'system.Role/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:role:list']);
-    Route::rule('system/role/add', 'system.Role/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:add', 'title' => '角色管理']);
-    Route::get('system/role/edit/:id', 'system.Role/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:role:edit']);
-    Route::post('system/role/edit', 'system.Role/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:edit', 'title' => '角色管理']);
-    Route::post('system/role/remove', 'system.Role/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:remove', 'title' => '角色管理']);
-    Route::rule('system/role/authDataScope/:id', 'system.Role/authDataScope', 'GET|POST')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:role:edit']);
-    Route::post('system/role/authDataScope', 'system.Role/authDataScope')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:edit', 'title' => '角色数据权限']);
-    Route::post('system/role/changeStatus', 'system.Role/changeStatus')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:role:edit', 'title' => '角色状态']);
-    Route::post('system/role/checkRoleNameUnique', 'system.Role/checkRoleNameUnique');
-    Route::post('system/role/checkRoleKeyUnique', 'system.Role/checkRoleKeyUnique');
-    Route::get('system/role/menuTreeData', 'system.Role/menuTreeData');
-    Route::get('system/role/deptTreeData', 'system.Role/deptTreeData');
-
-    // 菜单
-    Route::get('system/menu', 'system.Menu/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:menu:view']);
-    Route::post('system/menu/list', 'system.Menu/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:menu:list']);
-    Route::rule('system/menu/add/:parentId', 'system.Menu/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:add', 'title' => '菜单管理']);
-    Route::rule('system/menu/add', 'system.Menu/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:add', 'title' => '菜单管理']);
-    Route::get('system/menu/edit/:id', 'system.Menu/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:menu:edit']);
-    Route::post('system/menu/edit', 'system.Menu/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:edit', 'title' => '菜单管理']);
-    Route::post('system/menu/remove/:id', 'system.Menu/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:menu:remove', 'title' => '菜单管理']);
-    Route::get('system/menu/treeData', 'system.Menu/treeData');
-    Route::get('system/menu/treeData/:excludeId', 'system.Menu/treeData');
-    Route::get('system/menu/selectMenuTree/:menuId/:excludeId', 'system.Menu/selectMenuTree');
-    Route::get('system/menu/selectMenuTree/:menuId', 'system.Menu/selectMenuTree');
-
-    // 部门
-    Route::get('system/dept', 'system.Dept/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dept:view']);
-    Route::post('system/dept/list', 'system.Dept/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dept:list']);
-    Route::rule('system/dept/add/:parentId', 'system.Dept/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:add', 'title' => '部门管理']);
-    Route::rule('system/dept/add', 'system.Dept/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:add', 'title' => '部门管理']);
-    Route::get('system/dept/edit/:id', 'system.Dept/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dept:edit']);
-    Route::post('system/dept/edit', 'system.Dept/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:edit', 'title' => '部门管理']);
-    Route::post('system/dept/remove/:id', 'system.Dept/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dept:remove', 'title' => '部门管理']);
-    Route::get('system/dept/treeData', 'system.Dept/treeData');
-    Route::get('system/dept/treeData/:excludeId', 'system.Dept/treeData');
-    Route::get('system/dept/selectDeptTree/:deptId/:excludeId', 'system.Dept/selectDeptTree');
-    Route::get('system/dept/selectDeptTree/:deptId', 'system.Dept/selectDeptTree');
-
-    // 岗位
-    Route::get('system/post', 'system.Post/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:post:view']);
-    Route::post('system/post/list', 'system.Post/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:post:list']);
-    Route::rule('system/post/add', 'system.Post/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:post:add', 'title' => '岗位管理']);
-    Route::get('system/post/edit/:id', 'system.Post/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:post:edit']);
-    Route::post('system/post/edit', 'system.Post/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:post:edit', 'title' => '岗位管理']);
-    Route::post('system/post/remove', 'system.Post/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:post:remove', 'title' => '岗位管理']);
-
-    // 插件管理
-    Route::get('system/addon', 'system.Addon/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:addon:view']);
-    Route::post('system/addon/list', 'system.Addon/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:addon:list']);
-    Route::post('system/addon/install', 'system.Addon/install')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:install', 'title' => '插件安装']);
-    Route::post('system/addon/uninstall', 'system.Addon/uninstall')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:uninstall', 'title' => '插件卸载']);
-    Route::post('system/addon/enable', 'system.Addon/enable')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:edit', 'title' => '插件启用']);
-    Route::post('system/addon/disable', 'system.Addon/disable')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:edit', 'title' => '插件禁用']);
-    Route::post('system/addon/upload', 'system.Addon/upload')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:install', 'title' => '本地安装插件']);
-    Route::rule('system/addon/config/:name', 'system.Addon/config', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:addon:config', 'title' => '插件配置']);
-
-    // 已启用插件需登录路由
     AddonManager::instance()->mergeAuthRoutes();
+})->middleware([
+    \app\middleware\AdminToken::class,
+    \app\middleware\DemoMode::class,
+]);
 
-    // 字典类型
-    Route::get('system/dict', 'system.Dict/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:view']);
-    Route::post('system/dict/list', 'system.Dict/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:list']);
-    Route::rule('system/dict/add', 'system.Dict/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:add', 'title' => '字典管理']);
-    Route::get('system/dict/edit/:id', 'system.Dict/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:edit']);
-    Route::post('system/dict/edit', 'system.Dict/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:edit', 'title' => '字典管理']);
-    Route::post('system/dict/remove', 'system.Dict/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:remove', 'title' => '字典管理']);
-    Route::post('system/dict/checkDictTypeUnique', 'system.Dict/checkDictTypeUnique');
-
-    // 字典数据
-    Route::get('system/dict/data', 'system.DictData/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:view']);
-    Route::get('system/dict/data/:dictId', 'system.DictData/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:view']);
-    Route::post('system/dict/data/list', 'system.DictData/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:list']);
-    Route::rule('system/dict/data/add', 'system.DictData/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:add', 'title' => '字典数据']);
-    Route::get('system/dict/data/edit/:id', 'system.DictData/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:dict:edit']);
-    Route::post('system/dict/data/edit', 'system.DictData/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:edit', 'title' => '字典数据']);
-    Route::post('system/dict/data/remove', 'system.DictData/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:dict:remove', 'title' => '字典数据']);
-
-    // 参数
-    Route::get('system/config', 'system.Config/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:config:view']);
-    Route::post('system/config/list', 'system.Config/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:config:list']);
-    Route::rule('system/config/add', 'system.Config/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:config:add', 'title' => '参数设置']);
-    Route::get('system/config/edit/:id', 'system.Config/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:config:edit']);
-    Route::post('system/config/edit', 'system.Config/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:config:edit', 'title' => '参数设置']);
-    Route::post('system/config/remove', 'system.Config/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:config:remove', 'title' => '参数设置']);
-    Route::post('system/config/checkConfigKeyUnique', 'system.Config/checkConfigKeyUnique');
-
-    // 通知
-    Route::get('system/notice', 'system.Notice/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:notice:view']);
-    Route::post('system/notice/list', 'system.Notice/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:notice:list']);
-    Route::rule('system/notice/add', 'system.Notice/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:notice:add', 'title' => '通知公告']);
-    Route::get('system/notice/edit/:id', 'system.Notice/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:notice:edit']);
-    Route::post('system/notice/edit', 'system.Notice/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:notice:edit', 'title' => '通知公告']);
-    Route::post('system/notice/remove', 'system.Notice/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'system:notice:remove', 'title' => '通知公告']);
-
-    // 操作日志
-    Route::get('monitor/operlog', 'monitor.Operlog/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:operlog:view']);
-    Route::post('monitor/operlog/list', 'monitor.Operlog/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:operlog:list']);
-    Route::get('monitor/operlog/detail/:id', 'monitor.Operlog/detail')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:operlog:detail']);
-    Route::post('monitor/operlog/remove', 'monitor.Operlog/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:operlog:remove', 'title' => '操作日志']);
-    Route::post('monitor/operlog/clean', 'monitor.Operlog/clean')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:operlog:remove', 'title' => '清空操作日志']);
-
-    // 登录日志
-    Route::get('monitor/logininfor', 'monitor.Logininfor/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:logininfor:view']);
-    Route::post('monitor/logininfor/list', 'monitor.Logininfor/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:logininfor:list']);
-    Route::post('monitor/logininfor/remove', 'monitor.Logininfor/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:logininfor:remove', 'title' => '登录日志']);
-    Route::post('monitor/logininfor/clean', 'monitor.Logininfor/clean')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:logininfor:remove', 'title' => '清空登录日志']);
-    Route::post('monitor/logininfor/unlock', 'monitor.Logininfor/unlock')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:logininfor:unlock', 'title' => '账户解锁']);
-    Route::post('monitor/logininfor/export', 'monitor.Logininfor/export')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:logininfor:export']);
-
-    // 操作日志导出
-    Route::post('monitor/operlog/export', 'monitor.Operlog/export')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:operlog:export']);
-
-    // 在线用户
-    Route::get('monitor/online', 'monitor.Online/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:online:view']);
-    Route::post('monitor/online/list', 'monitor.Online/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:online:list']);
-    Route::post('monitor/online/batchForceLogout', 'monitor.Online/batchForceLogout')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:online:batchForceLogout', 'title' => '强退用户']);
-
-    // 定时任务
-    Route::get('monitor/job', 'monitor.Job/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:view']);
-    Route::post('monitor/job/list', 'monitor.Job/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:list']);
-    Route::rule('monitor/job/add', 'monitor.Job/add', 'GET|POST')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:add', 'title' => '定时任务']);
-    Route::get('monitor/job/edit/:id', 'monitor.Job/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:edit']);
-    Route::post('monitor/job/edit', 'monitor.Job/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:edit', 'title' => '定时任务']);
-    Route::post('monitor/job/remove', 'monitor.Job/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:remove', 'title' => '定时任务']);
-    Route::get('monitor/job/detail/:id', 'monitor.Job/detail')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:detail']);
-    Route::post('monitor/job/changeStatus', 'monitor.Job/changeStatus')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:changeStatus', 'title' => '任务状态']);
-    Route::post('monitor/job/run', 'monitor.Job/run')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:changeStatus', 'title' => '执行任务']);
-    Route::post('monitor/job/checkCronExpressionIsValid', 'monitor.Job/checkCronExpressionIsValid');
-    Route::get('monitor/job/cron', 'monitor.Job/cron')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:view']);
-    Route::post('monitor/job/export', 'monitor.Job/export')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:export']);
-
-    // 任务日志
-    Route::get('monitor/jobLog', 'monitor.JobLog/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:detail']);
-    Route::post('monitor/jobLog/list', 'monitor.JobLog/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:detail']);
-    Route::get('monitor/jobLog/detail/:id', 'monitor.JobLog/detail')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:detail']);
-    Route::post('monitor/jobLog/remove', 'monitor.JobLog/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:remove', 'title' => '调度日志']);
-    Route::post('monitor/jobLog/clean', 'monitor.JobLog/clean')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:job:remove', 'title' => '清空调度日志']);
-    Route::post('monitor/jobLog/export', 'monitor.JobLog/export')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:job:export']);
-
-    // 服务监控
-    Route::get('monitor/server', 'monitor.Server/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:server:view']);
-
-    // 缓存监控
-    Route::get('monitor/cache', 'monitor.Cache/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
-    Route::post('monitor/cache/getNames', 'monitor.Cache/getNames')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
-    Route::post('monitor/cache/getKeys', 'monitor.Cache/getKeys')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
-    Route::post('monitor/cache/getValue', 'monitor.Cache/getValue')->middleware(\app\middleware\Permission::class)->option(['perms' => 'monitor:cache:view']);
-    Route::post('monitor/cache/clearCacheName', 'monitor.Cache/clearCacheName')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:cache:view', 'title' => '清理缓存']);
-    Route::post('monitor/cache/clearCacheKey', 'monitor.Cache/clearCacheKey')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:cache:view', 'title' => '清理缓存键']);
-    Route::get('monitor/cache/clearAll', 'monitor.Cache/clearAll')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'monitor:cache:view', 'title' => '清理全部缓存']);
-
-    // 表单构建
-    Route::get('tool/build', 'tool.Build/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:build:view']);
-
-    // 代码生成
-    Route::get('tool/gen', 'tool.Gen/index')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:view']);
-    Route::post('tool/gen/list', 'tool.Gen/list')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:list']);
-    Route::post('tool/gen/db/list', 'tool.Gen/dbList')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:list']);
-    Route::post('tool/gen/importTable', 'tool.Gen/importTable')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:gen:import', 'title' => '导入表']);
-    Route::get('tool/gen/edit/:id', 'tool.Gen/edit')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:edit']);
-    Route::post('tool/gen/edit', 'tool.Gen/edit')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:gen:edit', 'title' => '代码生成']);
-    Route::post('tool/gen/remove', 'tool.Gen/remove')->middleware([\app\middleware\Permission::class, \app\middleware\OperLog::class])->option(['perms' => 'tool:gen:remove', 'title' => '代码生成']);
-    Route::get('tool/gen/preview/:id', 'tool.Gen/preview')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:preview']);
-    Route::get('tool/gen/download/:id', 'tool.Gen/download')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:code']);
-    Route::get('tool/gen/batchGenCode', 'tool.Gen/batchGenCode')->middleware(\app\middleware\Permission::class)->option(['perms' => 'tool:gen:code']);
-
-    // 导出 / 导入
+// Legacy export/download（非 SPA JSON；仍用 Session）
+Route::group(function () {
     Route::get('common/download', 'Common/download');
     Route::post('system/user/export', 'system.User/export')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:export']);
     Route::get('system/user/importTemplate', 'system.User/importTemplate')->middleware(\app\middleware\Permission::class)->option(['perms' => 'system:user:import']);
@@ -221,14 +227,66 @@ Route::group(function () {
 ]);
 
 } else {
+// Pay/wechat 机器回调 — 禁止 JsonOnly（notify 返回网关原始 XML/JSON）
+Route::any('api/pay/notifyx/:type', 'api.pay.Front/notifyx');
+Route::any('api/pay/returnx/:type', 'api.pay.Front/returnx');
+Route::any('api/wechat/server', 'api.wechat.Front/server');
+Route::any('api/wechat/callback', 'api.wechat.Front/callback');
+
+// P6 兼容：旧插件公开路径 → 系统 API（临时 302，父任务可再删）
+Route::any('addons/yspay/api/notifyx/:type', function (string $type) {
+    return redirect('/api/pay/notifyx/' . $type, 302);
+});
+Route::any('addons/yspay/api/returnx/:type', function (string $type) {
+    return redirect('/api/pay/returnx/' . $type, 302);
+});
+Route::any('addons/yspay/api/submit', function () {
+    return redirect('/api/pay/submit', 302);
+});
+Route::any('addons/yspay/api/wechat', function () {
+    return redirect('/api/pay/wechat', 302);
+});
+Route::any('addons/yspay/api/alipay', function () {
+    return redirect('/api/pay/alipay', 302);
+});
+Route::any('addons/yswechat/api/server', function () {
+    return redirect('/api/wechat/server', 302);
+});
+Route::any('addons/yswechat/api/callback', function () {
+    return redirect('/api/wechat/callback', 302);
+});
+Route::any('addons/yswechat/captcha/send', function () {
+    return redirect('/api/wechat/captcha/send', 302);
+});
+Route::any('addons/yswechat/captcha/check', function () {
+    return redirect('/api/wechat/captcha/check', 302);
+});
+
+// 站点网关 JSON API（Bearer mem_）。禁止 View::fetch。
+Route::group('api', function () {
+    Route::post('member/login', 'api.Member/login');
+    Route::post('member/register', 'api.Member/register');
+    Route::post('member/logout', 'api.Member/logout')->middleware(\app\middleware\MemberToken::class);
+    Route::get('member/getInfo', 'api.Member/getInfo')->middleware(\app\middleware\MemberToken::class);
+    Route::post('member/profile', 'api.Member/profile')->middleware(\app\middleware\MemberToken::class);
+    Route::post('member/changepwd', 'api.Member/changepwd')->middleware(\app\middleware\MemberToken::class);
+
+    Route::any('pay/submit', 'api.pay.Front/submit');
+    Route::any('pay/wechat', 'api.pay.Front/wechat');
+    Route::any('pay/alipay', 'api.pay.Front/alipay');
+    Route::post('pay/query', 'api.pay.Front/query');
+    Route::post('wechat/captcha/send', 'api.wechat.Front/captchaSend');
+    Route::post('wechat/captcha/check', 'api.wechat.Front/captchaCheck');
+})->middleware(\app\middleware\JsonOnly::class);
+
 // 前台：验证码（会员注册/自定义表单等）+ 插件公开路由 + 静态资源
 Route::get('captcha/captchaImage', 'Captcha/captchaImage');
 // 误入前台的后台登录地址 → 后台入口（含 .html 后缀被剥离后的 login）
 Route::get('login', function () {
-    return redirect(\app\common\Entry::url('/login'));
+    return redirect('/admin/login', 302);
 });
 Route::post('login', function () {
-    return redirect(\app\common\Entry::url('/login'));
+    return redirect('/admin/login', 302);
 });
 AddonManager::instance()->mergePublicRoutes();
 }

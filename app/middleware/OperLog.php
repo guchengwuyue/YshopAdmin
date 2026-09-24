@@ -30,7 +30,8 @@ class OperLog
                     $content = method_exists($response, 'getContent') ? (string) $response->getContent() : '';
                     if ($content !== '') {
                         $json = json_decode($content, true);
-                        if (is_array($json) && isset($json['code']) && (string) $json['code'] !== '0' && $json['code'] !== 0) {
+                        $okCodes = [0, '0', 200, '200'];
+                        if (is_array($json) && isset($json['code']) && !in_array($json['code'], $okCodes, true)) {
                             $status = 1;
                             $errorMsg = (string) ($json['msg'] ?? '');
                         }

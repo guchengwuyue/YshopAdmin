@@ -6,6 +6,7 @@ namespace app\service;
 use app\common\Auth;
 use app\common\PageHelper;
 use app\common\PasswordUtils;
+use app\common\Token;
 use app\common\UserAgent;
 use think\facade\Db;
 use think\facade\Request;
@@ -38,7 +39,7 @@ class LoginService
         if ($captcha !== null && $captcha !== '') {
             if ($validateCode === null || strcasecmp((string) $validateCode, (string) $captcha) !== 0) {
                 $this->recordLogin($username, '0', 'captcha error');
-                return ['ok' => false, 'msg' => 'captcha error'];
+                return ['ok' => false, 'msg' => '验证码错误'];
             }
             Session::delete('KAPTCHA_SESSION_KEY');
         }
@@ -73,7 +74,21 @@ class LoginService
 
         unset($user['password'], $user['salt']);
         $user = PageHelper::camelKeys($user);
-        Auth::setLoginUser($user, $permissions, PageHelper::camelRows($roles));
+        $roleRows = PageHelper::camelRows($roles);
+        Auth::setLoginUser($user, $permissions, $roleRows);
+
+        $token = '';
+        $expiresIn = 0;
+        try {
+            $issued = Token::issue(Token::REALM_ADMIN, [
+                'user'        => $user,
+                'permissions' => $permissions,
+                'roles'       => $roleRows,
+            ]);
+            $token = $issued['token'];
+            $expiresIn = $issued['expiresIn'];
+        } catch (\Throwable $e) {
+        }
 
         Db::name('sys_user')->where('user_id', $userId)->update([
             'login_ip'   => Request::ip(),
@@ -86,7 +101,12 @@ class LoginService
         }
 
         $this->recordLogin($username, '1', 'login success');
-        return ['ok' => true, 'msg' => 'login success'];
+        return [
+            'ok'        => true,
+            'msg'       => 'login success',
+            'token'     => $token,
+            'expiresIn' => $expiresIn,
+        ];
     }
 
     /**

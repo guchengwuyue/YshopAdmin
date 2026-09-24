@@ -1,6 +1,6 @@
 <?php
 // 全局中间件定义文件
 return [
-    // Session初始化
+    \app\middleware\Cors::class,
     \think\middleware\SessionInit::class,
 ];

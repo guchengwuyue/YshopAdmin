@@ -1,0 +1,70 @@
+<?php
+declare(strict_types=1);
+
+return [
+    [
+        'name'    => 'app_id',
+        'title'   => '微信公众号 AppID',
+        'type'    => 'string',
+        'content' => [],
+        'value'   => '',
+        'tip'     => '公众平台开发者 ID',
+    ],
+    [
+        'name'    => 'secret',
+        'title'   => '微信公众号 AppSecret',
+        'type'    => 'string',
+        'content' => [],
+        'value'   => '',
+        'tip'     => '公众平台开发者密码',
+    ],
+    [
+        'name'    => 'token',
+        'title'   => 'Token',
+        'type'    => 'string',
+        'content' => [],
+        'value'   => '',
+        'tip'     => '服务器配置 Token',
+    ],
+    [
+        'name'    => 'aes_key',
+        'title'   => 'EncodingAESKey',
+        'type'    => 'string',
+        'content' => [],
+        'value'   => '',
+        'tip'     => '消息加解密密钥，安全模式必填',
+    ],
+    [
+        'name'    => 'debug',
+        'title'   => '调试模式',
+        'type'    => 'radio',
+        'content' => ['0' => '否', '1' => '是'],
+        'value'   => '0',
+        'tip'     => '',
+    ],
+    [
+        'name'    => 'log_level',
+        'title'   => '日志等级',
+        'type'    => 'select',
+        'content' => [
+            'debug'     => 'debug',
+            'info'      => 'info',
+            'notice'    => 'notice',
+            'warning'   => 'warning',
+            'error'     => 'error',
+            'critical'  => 'critical',
+            'alert'     => 'alert',
+            'emergency' => 'emergency',
+        ],
+        'value'   => 'info',
+        'tip'     => '生产环境建议 info 或更高',
+    ],
+    [
+        'name'    => 'oauth_callback',
+        'title'   => 'OAuth 回调地址',
+        'type'    => 'string',
+        'content' => [],
+        'value'   => '/api/wechat/callback',
+        'tip'     => '预留，待扩展 OAuth 登录',
+    ],
+];

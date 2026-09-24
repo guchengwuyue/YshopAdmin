@@ -19,7 +19,7 @@ class TableDataInfo
     {
         $rows = self::utf8ize($rows);
         return json([
-            'code'  => 0,
+            'code'  => ApiCode::SUCCESS,
             'msg'   => $msg,
             'rows'  => $rows,
             'total' => $total,
@@ -34,7 +34,7 @@ class TableDataInfo
     public static function toArray(array $rows, int $total, string $msg = 'query ok'): array
     {
         return [
-            'code'  => 0,
+            'code'  => ApiCode::SUCCESS,
             'msg'   => $msg,
             'rows'  => self::utf8ize($rows),
             'total' => $total,

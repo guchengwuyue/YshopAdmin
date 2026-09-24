@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@theme/*": ["../addons/yscms/web/site/themes/ystheme/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,7 +1,7 @@
 (function ($) {
   'use strict';
 
-  // ×óÎÄÓÒÍ¼·Ö²ãÂÖ²¥£ºÎÄ×ÖÏÈ»¬¡¢Í¼Æ¬¸ú½ø
+  // å·¦æ–‡å³å›¾åˆ†å±‚è½®æ’­ï¼šæ–‡å­—å…ˆæ»‘ã€å›¾ç‰‡è·Ÿè¿›
   function initYstSlider() {
     var $slider = $('#yst-focus.yst-slider');
     if (!$slider.length) {
@@ -51,7 +51,7 @@
     var textFactor = parseFloat(getComputedStyle(root).getPropertyValue('--yst-text-factor')) || 1;
     var mediaFactor = parseFloat(getComputedStyle(root).getPropertyValue('--yst-media-factor')) || 0.72;
 
-    var $dots = $('<nav class="yst-slider-dots" aria-label="ÂÖ²¥Ö¸Ê¾"/>');
+    var $dots = $('<nav class="yst-slider-dots" aria-label="è½®æ’­æŒ‡ç¤º"/>');
     for (var i = 0; i < total; i++) {
       $dots.append('<span' + (i === current ? ' class="is-active"' : '') + '/>');
     }

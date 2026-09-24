@@ -6,8 +6,21 @@
   RewriteRule ^yshopadmin$ yshopadmin.php/ [QSA,PT,L]
   RewriteRule ^yshopadmin/(.*)$ yshopadmin.php/$1 [QSA,PT,L]
 
-  # Front entry: everything else
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+  # Legacy: older site-ui builds used base=/ → /assets/*; current builds use /site/assets/*
+  RewriteRule ^assets/(.*)$ site/assets/$1 [L]
+  RewriteRule ^vite\.svg$ site/vite.svg [L]
+
+  # JSON API / captcha / sitemap / go / addons → ThinkPHP front
+  RewriteRule ^(api|captcha|sitemap|go)(/.*)?$ index.php/$1$2 [QSA,PT,L]
+  RewriteRule ^addons/(.*)$ index.php/addons/$1 [QSA,PT,L]
+
+  # Existing files (uploads, legacy static, /site/*)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA fallback: content routes → public/site/index.html (or prerendered /{path}/index.html)
+  RewriteCond %{DOCUMENT_ROOT}/site/$1/index.html -f
+  RewriteRule ^(.*)$ site/$1/index.html [L]
+  RewriteRule ^(.*)$ site/index.html [L]
 </IfModule>
